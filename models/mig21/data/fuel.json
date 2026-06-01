@@ -1,0 +1,46 @@
+{
+    "comment": "燃料タンク定義。将来 FlightModel が重量・重心計算に、DamageSystem が火災判定に使用する。",
+    "totalInternalFuel": 2650,
+    "unit": "liters",
+    "tanks": [
+        {
+            "id": "tank1_forward",
+            "label": "Forward Fuselage Tank",
+            "capacity": 700,
+            "position": [2.0, 0.1, 0.0]
+        },
+        {
+            "id": "tank2_center",
+            "label": "Center Fuselage Tank",
+            "capacity": 1100,
+            "position": [0.0, 0.1, 0.0]
+        },
+        {
+            "id": "tank3_aft",
+            "label": "Aft Fuselage Tank",
+            "capacity": 500,
+            "position": [-2.2, 0.1, 0.0]
+        },
+        {
+            "id": "wing_left",
+            "label": "Left Wing Tank",
+            "capacity": 175,
+            "position": [-0.6, -0.15, -1.5]
+        },
+        {
+            "id": "wing_right",
+            "label": "Right Wing Tank",
+            "capacity": 175,
+            "position": [-0.6, -0.15, 1.5]
+        }
+    ],
+    "externalDropTanks": [
+        {
+            "id": "centerline_490L",
+            "label": "Centerline Drop Tank 490L",
+            "capacity": 490,
+            "position": [0.5, -0.9, 0.0],
+            "attached": false
+        }
+    ]
+}

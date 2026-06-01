@@ -1,0 +1,25 @@
+{
+    "name": "MiG-21MF",
+    "manufacturer": "Mikoyan-Gurevich",
+    "role": "Interceptor / Fighter",
+    "crew": 1,
+    "length": 15.76,
+    "wingspan": 7.15,
+    "height": 4.13,
+    "wingArea": 23.0,
+    "mass": 8825,
+    "maxTakeoffMass": 9660,
+    "engine": "R13-300",
+    "engineThrust": 64.7,
+    "engineThrustAfterburner": 63.7,
+    "maxSpeed": 2175,
+    "serviceCeiling": 17800,
+    "range": 1210,
+    "armament": [
+        "GSh-23L 23mm cannon",
+        "R-3S / R-13 air-to-air missiles",
+        "R-60 air-to-air missiles"
+    ],
+    "firstFlight": 1969,
+    "scale": 1.0
+}

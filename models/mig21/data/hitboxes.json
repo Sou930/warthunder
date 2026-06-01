@@ -1,0 +1,53 @@
+{
+    "comment": "簡易ヒットボックス定義。position/size はモデル内部スケール(メートル相当)。将来 DamageSystem がレイキャスト判定に使用する。",
+    "boxes": [
+        {
+            "part": "fuselage",
+            "label": "Forward Fuselage",
+            "position": [4.0, 0.0, 0.0],
+            "size": [4.0, 1.4, 1.4]
+        },
+        {
+            "part": "fuselage",
+            "label": "Center Fuselage / Fuel",
+            "position": [0.0, 0.0, 0.0],
+            "size": [4.5, 1.8, 1.8]
+        },
+        {
+            "part": "engine",
+            "label": "Engine Bay",
+            "position": [-4.5, 0.0, 0.0],
+            "size": [3.0, 1.2, 1.2]
+        },
+        {
+            "part": "cockpit",
+            "label": "Cockpit / Pilot",
+            "position": [3.3, 0.85, 0.0],
+            "size": [2.0, 1.0, 1.0]
+        },
+        {
+            "part": "leftWing",
+            "label": "Left Wing",
+            "position": [-0.6, -0.15, -2.0],
+            "size": [3.2, 0.4, 3.0]
+        },
+        {
+            "part": "rightWing",
+            "label": "Right Wing",
+            "position": [-0.6, -0.15, 2.0],
+            "size": [3.2, 0.4, 3.0]
+        },
+        {
+            "part": "tail",
+            "label": "Vertical Stabilizer",
+            "position": [-4.4, 1.6, 0.0],
+            "size": [2.2, 2.0, 0.3]
+        },
+        {
+            "part": "tail",
+            "label": "Horizontal Stabilizers",
+            "position": [-4.6, 0.0, 0.0],
+            "size": [1.8, 0.3, 3.2]
+        }
+    ]
+}
