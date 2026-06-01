@@ -1,0 +1,26 @@
+{
+    "name": "F-4E Phantom II",
+    "manufacturer": "McDonnell Douglas",
+    "role": "Multirole Fighter",
+    "crew": 2,
+    "length": 19.2,
+    "wingspan": 11.77,
+    "height": 5.02,
+    "wingArea": 49.2,
+    "mass": 13757,
+    "maxTakeoffMass": 28030,
+    "engine": "J79-GE-17A ×2",
+    "engineThrust": 52.9,
+    "engineThrustAfterburner": 79.4,
+    "maxSpeed": 2370,
+    "serviceCeiling": 18300,
+    "range": 2600,
+    "armament": [
+        "M61A1 20mm Vulcan cannon",
+        "AIM-7 Sparrow",
+        "AIM-9 Sidewinder",
+        "AIM-4 Falcon"
+    ],
+    "firstFlight": 1958,
+    "scale": 1.0
+}

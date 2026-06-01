@@ -1,0 +1,50 @@
+{
+    "comment": "F-4E Phantom II 装甲/防弾板定義。厚さは mm。position/size はモデル内部スケール(メートル相当)。将来 DamageSystem が貫通計算 (弾の貫通力 vs 装甲厚) に使用する。",
+    "unit": "mm",
+    "plates": [
+        {
+            "zone": "cockpitFront",
+            "label": "Front Cockpit Armor (Pilot)",
+            "thickness": 12,
+            "material": "steel",
+            "position": [4.2, 0.55, 0.0],
+            "size": [0.15, 1.0, 1.1]
+        },
+        {
+            "zone": "cockpitRear",
+            "label": "Rear Cockpit Armor (WSO)",
+            "thickness": 12,
+            "material": "steel",
+            "position": [2.7, 0.55, 0.0],
+            "size": [0.15, 1.0, 1.1]
+        },
+        {
+            "zone": "engineBay",
+            "label": "Engine Bay Firewall / Titanium Shield",
+            "thickness": 20,
+            "material": "titanium",
+            "position": [-2.6, -0.1, 0.0],
+            "size": [0.2, 1.4, 2.0]
+        }
+    ],
+    "modules": [
+        {
+            "id": "leftEngine",
+            "label": "Engine J79-GE-17A (Left)",
+            "hitpoints": 220,
+            "position": [-4.6, -0.1, -0.85]
+        },
+        {
+            "id": "rightEngine",
+            "label": "Engine J79-GE-17A (Right)",
+            "hitpoints": 220,
+            "position": [-4.6, -0.1, 0.85]
+        },
+        {
+            "id": "controls",
+            "label": "Flight Control Linkages",
+            "hitpoints": 60,
+            "position": [-3.4, 0.0, 0.0]
+        }
+    ]
+}
