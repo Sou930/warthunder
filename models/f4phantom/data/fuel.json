@@ -1,0 +1,54 @@
+{
+    "comment": "F-4E Phantom II 燃料タンク定義。胴体上部の6セルバラダーセル群と主翼内タンクを4区画に集約。capacity は L。position はモデル内部スケール(メートル相当)。将来 FlightModel が重量・重心計算に、DamageSystem が火災判定に使用する。",
+    "totalInternalFuel": 7022,
+    "unit": "liters",
+    "tanks": [
+        {
+            "id": "fuselageForward",
+            "label": "Forward Fuselage Tank (Cells 1-2)",
+            "capacity": 2400,
+            "position": [2.4, 0.45, 0.0]
+        },
+        {
+            "id": "fuselageMid",
+            "label": "Mid Fuselage Tank (Cells 3-6)",
+            "capacity": 2900,
+            "position": [-1.6, 0.4, 0.0]
+        },
+        {
+            "id": "leftWingTank",
+            "label": "Left Wing Internal Tank",
+            "capacity": 861,
+            "position": [-0.4, -0.1, -2.4]
+        },
+        {
+            "id": "rightWingTank",
+            "label": "Right Wing Internal Tank",
+            "capacity": 861,
+            "position": [-0.4, -0.1, 2.4]
+        }
+    ],
+    "externalDropTanks": [
+        {
+            "id": "centerline_600gal",
+            "label": "Centerline Drop Tank 600 US gal",
+            "capacity": 2271,
+            "position": [0.0, -1.15, 0.0],
+            "attached": false
+        },
+        {
+            "id": "wing_370gal_left",
+            "label": "Left Wing Drop Tank 370 US gal",
+            "capacity": 1400,
+            "position": [-0.4, -0.7, -3.0],
+            "attached": false
+        },
+        {
+            "id": "wing_370gal_right",
+            "label": "Right Wing Drop Tank 370 US gal",
+            "capacity": 1400,
+            "position": [-0.4, -0.7, 3.0],
+            "attached": false
+        }
+    ]
+}
