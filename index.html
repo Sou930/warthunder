@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>War Thunder Style Aircraft Viewer — MiG-21</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!--
+      Import Map:
+      ES Modules で 'three' という指定子を libs/three.module.js に解決する。
+      OrbitControls.js が `import ... from 'three'` を使っているため必須。
+    -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "./libs/three.module.js",
+            "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+        }
+    }
+    </script>
+</head>
+<body>
+    <!-- 3D レンダリング用キャンバスの親 -->
+    <div id="viewer"></div>
+
+    <!-- ロード中オーバーレイ -->
+    <div id="loading">
+        <div class="loading-inner">
+            <div class="spinner"></div>
+            <p>機体データを読み込み中...</p>
+        </div>
+    </div>
+
+    <!-- HUD: 機体情報パネル -->
+    <div id="hud" class="hidden">
+        <header id="spec-header">
+            <h1 id="spec-name">—</h1>
+            <span id="spec-engine">—</span>
+        </header>
+        <ul id="spec-list">
+            <li><span class="label">全長</span><span id="spec-length" class="value">—</span></li>
+            <li><span class="label">全幅</span><span id="spec-wingspan" class="value">—</span></li>
+            <li><span class="label">質量</span><span id="spec-mass" class="value">—</span></li>
+        </ul>
+    </div>
+
+    <!-- コントロールパネル -->
+    <div id="control-panel" class="hidden">
+        <h2>表示オプション</h2>
+        <label class="toggle">
+            <input type="checkbox" id="toggle-gear" checked>
+            <span>降着装置 (Landing Gear)</span>
+        </label>
+        <label class="toggle">
+            <input type="checkbox" id="toggle-hitbox">
+            <span>ヒットボックス (Hitboxes)</span>
+        </label>
+        <label class="toggle">
+            <input type="checkbox" id="toggle-wireframe">
+            <span>ワイヤーフレーム</span>
+        </label>
+        <label class="toggle">
+            <input type="checkbox" id="toggle-rotate" checked>
+            <span>自動回転</span>
+        </label>
+        <div class="hint">
+            <p><b>左ドラッグ</b>: 回転</p>
+            <p><b>右ドラッグ</b>: パン</p>
+            <p><b>ホイール</b>: ズーム</p>
+        </div>
+    </div>
+
+    <!-- 操作ヒント (画面下) -->
+    <footer id="footer-credit">
+        Three.js Procedural Aircraft Viewer &middot; MiG-21MF
+    </footer>
+
+    <!-- メインスクリプト (ES Modules) -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>

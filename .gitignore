@@ -1,0 +1,10 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# logs
+*.log
+
+# node (将来 build ツール導入時用)
+node_modules/

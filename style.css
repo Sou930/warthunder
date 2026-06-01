@@ -1,0 +1,256 @@
+/* ============================================================
+   War Thunder Style Aircraft Viewer — style.css
+   ============================================================ */
+
+:root {
+    --accent: #f5a623;
+    --accent-dim: #c9821a;
+    --bg-panel: rgba(12, 16, 22, 0.82);
+    --bg-panel-border: rgba(245, 166, 35, 0.35);
+    --text: #e8edf2;
+    --text-dim: #8a97a6;
+    --font: "Segoe UI", "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN",
+            "Yu Gothic", Meiryo, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #05070a;
+    font-family: var(--font);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- 3D ビューポート --- */
+#viewer {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#viewer canvas {
+    display: block;
+}
+
+/* --- 共通: ガラスパネル --- */
+.hidden {
+    display: none !important;
+}
+
+#hud,
+#control-panel {
+    position: fixed;
+    background: var(--bg-panel);
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 10px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    padding: 16px 18px;
+    z-index: 10;
+}
+
+/* --- HUD (左上: スペック) --- */
+#hud {
+    top: 20px;
+    left: 20px;
+    min-width: 240px;
+}
+
+#spec-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+#spec-name {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+}
+
+#spec-engine {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#spec-list {
+    list-style: none;
+}
+
+#spec-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 5px 0;
+    font-size: 14px;
+}
+
+#spec-list .label {
+    color: var(--text-dim);
+}
+
+#spec-list .value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- コントロールパネル (右上) --- */
+#control-panel {
+    top: 20px;
+    right: 20px;
+    width: 230px;
+}
+
+#control-panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 12px;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 38px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.toggle input::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s;
+}
+
+.toggle input:checked {
+    background: var(--accent);
+}
+
+.toggle input:checked::after {
+    transform: translateX(18px);
+}
+
+.hint {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.7;
+}
+
+.hint b {
+    color: var(--text);
+}
+
+/* --- フッター --- */
+#footer-credit {
+    position: fixed;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* --- ロード中オーバーレイ --- */
+#loading {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #05070a;
+    z-index: 100;
+    transition: opacity 0.5s;
+}
+
+#loading.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-inner {
+    text-align: center;
+    color: var(--text-dim);
+}
+
+.loading-inner p {
+    margin-top: 16px;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto;
+    border: 3px solid rgba(245, 166, 35, 0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- エラー表示 --- */
+.error-box {
+    color: #ff6b6b;
+    font-size: 13px;
+    max-width: 360px;
+    line-height: 1.6;
+}
+
+/* --- レスポンシブ --- */
+@media (max-width: 640px) {
+    #hud, #control-panel {
+        font-size: 12px;
+        padding: 12px 14px;
+    }
+    #control-panel {
+        width: 190px;
+    }
+    #spec-name {
+        font-size: 18px;
+    }
+}
