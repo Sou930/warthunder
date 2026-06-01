@@ -165,6 +165,64 @@ html, body {
     transform: translateX(18px);
 }
 
+/* --- パネル内の区切り線 --- */
+.panel-divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    margin: 10px 0 6px;
+}
+
+/* --- スライダー行 --- */
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.slider-row label {
+    flex-shrink: 0;
+    width: 56px;
+}
+
+.slider-row input[type="range"] {
+    flex: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.18);
+    outline: none;
+    cursor: pointer;
+}
+
+.slider-row input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(245, 166, 35, 0.6);
+}
+
+.slider-row input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+}
+
+.slider-row input[type="range"]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .hint {
     margin-top: 14px;
     padding-top: 12px;

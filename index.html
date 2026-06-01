@@ -64,6 +64,27 @@
             <input type="checkbox" id="toggle-rotate" checked>
             <span>自動回転</span>
         </label>
+
+        <hr class="panel-divider">
+
+        <label class="toggle">
+            <input type="checkbox" id="toggle-afterburner" checked>
+            <span>アフターバーナー</span>
+        </label>
+        <div class="slider-row">
+            <label for="slider-thrust">推力</label>
+            <input type="range" id="slider-thrust" min="0" max="100" value="100">
+        </div>
+
+        <label class="toggle">
+            <input type="checkbox" id="toggle-cone-auto" checked>
+            <span>ショックコーン自動可動</span>
+        </label>
+        <div class="slider-row">
+            <label for="slider-cone">コーン突出</label>
+            <input type="range" id="slider-cone" min="0" max="100" value="0" disabled>
+        </div>
+
         <div class="hint">
             <p><b>左ドラッグ</b>: 回転</p>
             <p><b>右ドラッグ</b>: パン</p>

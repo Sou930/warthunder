@@ -136,6 +136,32 @@ export class Mig21Model {
         Object.values(this.parts).forEach((p) => p.setWireframe(enabled));
     }
 
+    /** アフターバーナー ON/OFF (engine へ委譲) */
+    setAfterburner(on) {
+        this.parts.engine?.setAfterburner(on);
+    }
+
+    /** アフターバーナー推力レベル (0..1) */
+    setAfterburnerLevel(level) {
+        this.parts.engine?.setAfterburnerLevel(level);
+    }
+
+    /**
+     * 可動ショックコーンの突出量 (0..1)。
+     * null を渡すとデモ自動往復に戻す。
+     */
+    setShockCone(amount) {
+        const fus = this.parts.fuselage;
+        if (!fus) return;
+        if (amount == null) {
+            fus.setShockConeAuto(true);
+            fus.setShockConeExtend(0);
+        } else {
+            fus.setShockConeAuto(false);
+            fus.setShockConeExtend(amount);
+        }
+    }
+
     /**
      * アニメーション更新 (毎フレーム呼ぶ)。
      * パーツが update() を持っていれば伝播する。

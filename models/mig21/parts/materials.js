@@ -65,13 +65,52 @@ export const Materials = {
         roughness: 0.35,
     }),
 
-    /** アフターバーナー内部の発光 */
+    /** アフターバーナー内部の発光 (ノズル直後の高温コア) */
     afterburner: new THREE.MeshStandardMaterial({
         color: 0xff6622,
         emissive: 0xff4400,
         emissiveIntensity: 1.2,
         metalness: 0.2,
         roughness: 0.7,
+    }),
+
+    /** アフターバーナー炎プルーム内側 (最も高温=白〜青) — 加算合成で発光 */
+    flameCore: new THREE.MeshBasicMaterial({
+        color: 0xbfe0ff,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+    }),
+
+    /** アフターバーナー炎プルーム中間 (オレンジ) */
+    flameMid: new THREE.MeshBasicMaterial({
+        color: 0xff8a2a,
+        transparent: true,
+        opacity: 0.55,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+    }),
+
+    /** アフターバーナー炎プルーム外側 (赤/煙) */
+    flameOuter: new THREE.MeshBasicMaterial({
+        color: 0xff3a10,
+        transparent: true,
+        opacity: 0.3,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+    }),
+
+    /** ショックダイヤモンド (マッハディスク) — 周期的な明点 */
+    machDisk: new THREE.MeshBasicMaterial({
+        color: 0xfff2c8,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
     }),
 
     /** タイヤ (ゴム) */
@@ -93,6 +132,27 @@ export const Materials = {
         color: 0xcc2222,
         metalness: 0.2,
         roughness: 0.6,
+    }),
+
+    /** パイロットのフライトスーツ (オリーブ〜グレー布地) */
+    pilotSuit: new THREE.MeshStandardMaterial({
+        color: 0x4a5447,
+        metalness: 0.05,
+        roughness: 0.9,
+    }),
+
+    /** パイロットのヘルメット (白〜ライトグレーの硬質シェル) */
+    helmet: new THREE.MeshStandardMaterial({
+        color: 0xd8dcdf,
+        metalness: 0.2,
+        roughness: 0.5,
+    }),
+
+    /** ヘルメットバイザー (暗いスモークガラス) */
+    visor: new THREE.MeshStandardMaterial({
+        color: 0x14181c,
+        metalness: 0.6,
+        roughness: 0.2,
     }),
 };
 

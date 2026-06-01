@@ -23,27 +23,27 @@ export class LandingGear extends AircraftPart {
         leg.name = name;
 
         // ストラット (脚柱)
-        const strutGeo = new THREE.CylinderGeometry(0.06, 0.06, strutLen, 12);
+        const strutGeo = new THREE.CylinderGeometry(0.06, 0.06, strutLen, 8);
         const strut = this.addMesh(strutGeo, Materials.strut, `${name}:strut`);
         strut.position.set(0, -strutLen / 2, 0);
         leg.add(strut);
 
         // トルクリンク風の補強 (斜め支柱)
-        const braceGeo = new THREE.CylinderGeometry(0.03, 0.03, strutLen * 0.7, 8);
+        const braceGeo = new THREE.CylinderGeometry(0.03, 0.03, strutLen * 0.7, 6);
         const brace = this.addMesh(braceGeo, Materials.strut, `${name}:brace`);
         brace.position.set(0.12, -strutLen * 0.45, 0);
         brace.rotation.z = THREE.MathUtils.degToRad(20);
         leg.add(brace);
 
         // ホイール (タイヤ)
-        const wheelGeo = new THREE.CylinderGeometry(wheelR, wheelR, 0.16, 20);
+        const wheelGeo = new THREE.CylinderGeometry(wheelR, wheelR, 0.16, 16);
         wheelGeo.rotateX(Math.PI / 2); // 車軸を Z 方向へ
         const wheel = this.addMesh(wheelGeo, Materials.tire, `${name}:wheel`);
         wheel.position.set(0, -strutLen, 0);
         leg.add(wheel);
 
         // ホイールハブ
-        const hubGeo = new THREE.CylinderGeometry(wheelR * 0.4, wheelR * 0.4, 0.18, 12);
+        const hubGeo = new THREE.CylinderGeometry(wheelR * 0.4, wheelR * 0.4, 0.18, 10);
         hubGeo.rotateX(Math.PI / 2);
         const hub = this.addMesh(hubGeo, Materials.strut, `${name}:hub`);
         hub.position.set(0, -strutLen, 0);

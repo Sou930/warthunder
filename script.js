@@ -220,6 +220,35 @@ function bindUI(viewer, config) {
     wire?.addEventListener('change', (e) => viewer.model.setWireframe(e.target.checked));
     rotate?.addEventListener('change', (e) => { viewer.autoRotate = e.target.checked; });
 
+    // --- アフターバーナー制御 ---
+    const ab = document.getElementById('toggle-afterburner');
+    const thrust = document.getElementById('slider-thrust');
+    ab?.addEventListener('change', (e) => {
+        viewer.model.setAfterburner(e.target.checked);
+        if (thrust) thrust.disabled = !e.target.checked;
+    });
+    thrust?.addEventListener('input', (e) => {
+        viewer.model.setAfterburnerLevel(Number(e.target.value) / 100);
+    });
+
+    // --- 可動ショックコーン制御 ---
+    const coneAuto = document.getElementById('toggle-cone-auto');
+    const coneSlider = document.getElementById('slider-cone');
+    coneAuto?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            // 自動往復モード
+            viewer.model.setShockCone(null);
+            if (coneSlider) coneSlider.disabled = true;
+        } else {
+            // 手動モード: 現在のスライダー値を反映
+            if (coneSlider) coneSlider.disabled = false;
+            viewer.model.setShockCone(coneSlider ? Number(coneSlider.value) / 100 : 0);
+        }
+    });
+    coneSlider?.addEventListener('input', (e) => {
+        viewer.model.setShockCone(Number(e.target.value) / 100);
+    });
+
     // パネルを表示
     document.getElementById('hud')?.classList.remove('hidden');
     document.getElementById('control-panel')?.classList.remove('hidden');
