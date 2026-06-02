@@ -154,6 +154,43 @@ export const Materials = {
         metalness: 0.6,
         roughness: 0.2,
     }),
+
+    /** ミサイル本体 (ソ連空対空ミサイルのライトグレー) */
+    missileBody: new THREE.MeshStandardMaterial({
+        color: 0xc9ccd0,
+        metalness: 0.35,
+        roughness: 0.5,
+    }),
+
+    /** ミサイル フィン/シーカー (ダークグレー) */
+    missileFin: new THREE.MeshStandardMaterial({
+        color: 0x40444a,
+        metalness: 0.55,
+        roughness: 0.45,
+    }),
+
+    /** 赤外線シーカー窓 (R-3S/R-60 のガラスシーカー — 半透明の暗色) */
+    seekerGlass: new THREE.MeshStandardMaterial({
+        color: 0x2a3038,
+        metalness: 0.4,
+        roughness: 0.15,
+        emissive: 0x101418,
+        emissiveIntensity: 0.4,
+    }),
+
+    /** パイロン (兵装架) — 機体下面色に近いメタル */
+    pylon: new THREE.MeshStandardMaterial({
+        color: 0x7a8086,
+        metalness: 0.6,
+        roughness: 0.45,
+    }),
+
+    /** 増槽 (ドロップタンク) — 機体色に合わせたシルバー */
+    fuelTank: new THREE.MeshStandardMaterial({
+        color: 0xaeb3b8,
+        metalness: 0.55,
+        roughness: 0.45,
+    }),
 };
 
 /** ヒットボックス可視化用の半透明ワイヤーマテリアル */

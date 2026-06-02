@@ -7,6 +7,7 @@ import { LeftWing } from './parts/leftWing.js';
 import { RightWing } from './parts/rightWing.js';
 import { Tail } from './parts/tail.js';
 import { LandingGear } from './parts/landingGear.js';
+import { Weapons } from './parts/weapons.js';
 import { makeHitboxMaterial } from './parts/materials.js';
 
 /**
@@ -61,6 +62,7 @@ export class Mig21Model {
             new RightWing(),
             new Tail(),
             new LandingGear(),
+            new Weapons(),
         ];
 
         for (const part of partInstances) {
@@ -126,6 +128,11 @@ export class Mig21Model {
 
     setGearVisible(visible) {
         this.parts.landingGear?.setVisible(visible);
+    }
+
+    /** 兵装 (ミサイル/増槽) の表示切替 */
+    setWeaponsVisible(visible) {
+        this.parts.weapons?.setVisible(visible);
     }
 
     setHitboxVisible(visible) {

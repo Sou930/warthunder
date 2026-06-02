@@ -124,6 +124,29 @@ class Viewer {
         // 半球光 (空と地面の色を反映)
         const hemi = new THREE.HemisphereLight(0x668bbf, 0x33302a, 0.5);
         this.scene.add(hemi);
+
+        // --- 明るさ調整用に各ライトと「基準強度」を保持 ---
+        // setBrightness(factor) で base * factor を各ライトに反映する。
+        this.lights = [
+            { light: ambient, base: ambient.intensity },
+            { light: sun, base: sun.intensity },
+            { light: fill, base: fill.intensity },
+            { light: hemi, base: hemi.intensity },
+        ];
+        this.brightness = 1.0;
+    }
+
+    /**
+     * シーン全体の光の明るさを一括調整する。
+     * @param {number} factor 倍率 (0=暗, 1=標準, 2=明)
+     */
+    setBrightness(factor) {
+        this.brightness = factor;
+        for (const { light, base } of this.lights) {
+            light.intensity = base * factor;
+        }
+        // トーンマッピング露出も軽く連動させ、明暗の体感を強める
+        this.renderer.toneMappingExposure = 1.05 * (0.6 + 0.4 * factor);
     }
 
     // ---------------- Controls ----------------
@@ -281,6 +304,21 @@ function updateWeaponsUI(viewer) {
     }
 }
 
+/**
+ * SEA迷彩塗装トグル UI を機体に応じて有効/無効化する。
+ * setCamo を実装する機体 (F-4) でのみ有効。
+ */
+function updateCamoUI(viewer) {
+    const supported = typeof viewer.model?.setCamo === 'function';
+    const row = document.getElementById('toggle-camo')?.closest('.toggle');
+    const cb = document.getElementById('toggle-camo');
+    if (cb) cb.disabled = !supported;
+    if (row) {
+        row.classList.toggle('disabled-group', !supported);
+        row.title = supported ? '' : 'この機体は迷彩塗装の切替に対応していません';
+    }
+}
+
 function bindUI(viewer, config) {
     // スペック表示
     updateSpecPanel(config);
@@ -297,6 +335,7 @@ function bindUI(viewer, config) {
                 updateSpecPanel(newConfig);
                 updateShockConeUI(viewer);
                 updateWeaponsUI(viewer);
+                updateCamoUI(viewer);
                 syncControlsToModel(viewer);
                 updateFooter(viewer);
             } catch (err) {
@@ -315,11 +354,20 @@ function bindUI(viewer, config) {
 
     const weapons = document.getElementById('toggle-weapons');
 
+    const camo = document.getElementById('toggle-camo');
+    const brightness = document.getElementById('slider-brightness');
+
     gear?.addEventListener('change', (e) => viewer.model.setGearVisible(e.target.checked));
     hitbox?.addEventListener('change', (e) => viewer.model.setHitboxVisible(e.target.checked));
     wire?.addEventListener('change', (e) => viewer.model.setWireframe(e.target.checked));
     rotate?.addEventListener('change', (e) => { viewer.autoRotate = e.target.checked; });
     weapons?.addEventListener('change', (e) => viewer.model.setWeaponsVisible?.(e.target.checked));
+    camo?.addEventListener('change', (e) => viewer.model.setCamo?.(e.target.checked));
+
+    // --- ライティング (明るさ) 制御 ---
+    brightness?.addEventListener('input', (e) => {
+        viewer.setBrightness(Number(e.target.value) / 100);
+    });
 
     // --- アフターバーナー制御 ---
     const ab = document.getElementById('toggle-afterburner');
@@ -355,6 +403,9 @@ function bindUI(viewer, config) {
     // 初期状態を機体に合わせて整える
     updateShockConeUI(viewer);
     updateWeaponsUI(viewer);
+    updateCamoUI(viewer);
+    // 明るさスライダーの初期値を反映
+    if (brightness) viewer.setBrightness(Number(brightness.value) / 100);
     updateFooter(viewer);
 
     // パネルを表示
@@ -376,6 +427,7 @@ function syncControlsToModel(viewer) {
     model.setHitboxVisible(checked('toggle-hitbox'));
     model.setWireframe(checked('toggle-wireframe'));
     model.setWeaponsVisible?.(checked('toggle-weapons'));
+    model.setCamo?.(checked('toggle-camo'));
     viewer.autoRotate = checked('toggle-rotate');
     model.setAfterburner(checked('toggle-afterburner'));
     model.setAfterburnerLevel(val('slider-thrust') / 100);

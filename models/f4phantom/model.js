@@ -8,7 +8,7 @@ import { RightWing } from './parts/rightWing.js';
 import { Tail } from './parts/tail.js';
 import { LandingGear } from './parts/landingGear.js';
 import { Weapons } from './parts/weapons.js';
-import { makeHitboxMaterial } from './parts/materials.js';
+import { makeHitboxMaterial, setCamoScheme } from './parts/materials.js';
 
 /**
  * F4PhantomModel — 全パーツを組み立てて 1 機の F-4E Phantom II を構成する。
@@ -137,6 +137,16 @@ export class F4PhantomModel {
     /** 兵装 (ミサイル/増槽) の表示切替 */
     setWeaponsVisible(visible) {
         this.parts.weapons?.setVisible(visible);
+    }
+
+    /**
+     * SEA迷彩塗装の ON/OFF を切り替える。
+     *   true  → USAF SEA 3色迷彩 (ベトナム迷彩)
+     *   false → 迷彩オフ (無塗装メタル基調の単色)
+     * 共有マテリアルの色を差し替えるだけで全パーツに反映される。
+     */
+    setCamo(enabled) {
+        setCamoScheme(enabled ? 'sea' : 'bare');
     }
 
     setHitboxVisible(visible) {
