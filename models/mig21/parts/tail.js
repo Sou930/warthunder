@@ -42,25 +42,28 @@ export class Tail extends AircraftPart {
         vfin.position.set(-2.0, 0.6, 0);
 
         // ラダー分割ライン
-        const rudderLineGeo = new THREE.BoxGeometry(0.05, 1.9, 0.16);
+        //  ※ 垂直尾翼はワールドで X≈-3.4〜-5.8 に位置するため、ディテールも
+        //    その範囲内に配置する (旧値は前方すぎて宙に浮いていた)。
+        const rudderLineGeo = new THREE.BoxGeometry(0.05, 1.7, 0.16);
         const rudderLine = this.addMesh(rudderLineGeo, Materials.panelLine, 'rudderLine');
-        rudderLine.position.set(-3.55, 1.6, 0);
+        rudderLine.position.set(-5.45, 1.55, 0); // 後縁(ラダー)寄り
 
         // ----------------------------------------------------------
         //  垂直尾翼上端の航法灯 (白) + 頂部の RWR/ESM フェアリング
         // ----------------------------------------------------------
         const finTipGeo = new THREE.SphereGeometry(0.07, 10, 8);
         const finTip = this.addMesh(finTipGeo, Materials.navLightWhite, 'finTopLight');
-        finTip.position.set(-5.05, 2.75, 0);
+        finTip.position.set(-5.45, 2.66, 0); // 頂部後端の角に埋め込む
 
-        const esmGeo = new THREE.BoxGeometry(0.5, 0.18, 0.16);
+        // 頂部 ESM/RWR フェアリング — 翼頂稜線 (X≈-4.6〜-5.6, Y≈2.7) に沿わせる
+        const esmGeo = new THREE.BoxGeometry(0.45, 0.16, 0.15);
         const esm = this.addMesh(esmGeo, Materials.dielectric, 'finEsmFairing');
-        esm.position.set(-3.0, 2.78, 0);
+        esm.position.set(-5.06, 2.6, 0);
 
         // 垂直尾翼のパネルライン (前縁付近のスジ彫り)
-        const finPanelGeo = new THREE.BoxGeometry(0.04, 1.9, 0.18);
+        const finPanelGeo = new THREE.BoxGeometry(0.04, 1.5, 0.18);
         const finPanel = this.addMesh(finPanelGeo, Materials.panelLine, 'finPanelLine');
-        finPanel.position.set(-2.6, 1.5, 0);
+        finPanel.position.set(-4.0, 1.4, 0); // 前縁寄り (翼内に収める)
 
         // ----------------------------------------------------------
         //  ブレーキパラシュート格納筒 — テールコーン基部の円筒フェアリング。
@@ -126,10 +129,13 @@ export class Tail extends AircraftPart {
 
         // ----------------------------------------------------------
         //  垂直尾翼の赤星マーキング (左右)
+        //  星は XY 平面の薄板 (法線 ±Z)。垂直尾翼の側面 (ワールド X≈-4.3,
+        //  Y≈1.5) に貼り付ける。フィン厚 (±0.07) のすぐ外側に置く。
         // ----------------------------------------------------------
         for (const dir of [1, -1]) {
-            const star = this._makeRedStar(0.42);
-            star.position.set(-3.0, 1.5, dir * 0.1);
+            const star = this._makeRedStar(0.4);
+            star.position.set(-4.5, 1.4, dir * 0.085);
+            // 右(+Z)面は手前向き、左(-Z)面は反転して外を向かせる
             star.rotation.y = dir === 1 ? 0 : Math.PI;
             this.group.add(star);
         }

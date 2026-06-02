@@ -27,7 +27,8 @@ export class Cockpit extends AircraftPart {
         // ----------------------------------------------------------
         const canopyGeo = new THREE.SphereGeometry(0.55, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2);
         const canopy = this.addMesh(canopyGeo, Materials.canopy, 'glass');
-        canopy.scale.set(1.9, 1.0, 0.95);  // 前後に長いバブル形状
+        // 背を少し高くしてパイロットのヘルメットが収まる高さに (旧: scale.y=1.0 で頭がはみ出していた)
+        canopy.scale.set(1.9, 1.2, 0.98);  // 前後に長く・やや背の高いバブル形状
         canopy.position.set(baseX, baseY, 0);
 
         // ----------------------------------------------------------
@@ -96,29 +97,30 @@ export class Cockpit extends AircraftPart {
         const torsoGeo = new THREE.CapsuleGeometry(0.16, 0.34, 6, 12);
         const torso = this.addMesh(torsoGeo, Materials.pilotSuit, 'pilotTorso');
         torso.rotation.z = THREE.MathUtils.degToRad(-12); // 背もたれにもたれる
-        torso.position.set(seatX - 0.02, seatY + 0.32, 0);
+        torso.position.set(seatX - 0.02, seatY + 0.24, 0);
         pilot.add(torso);
 
         // --- ヘルメット (頭部) — 白っぽいフライトヘルメット ---
-        const helmetGeo = new THREE.SphereGeometry(0.16, 20, 16);
+        //  ※ キャノピー内に収まるよう高さを下げた (旧: +0.62 で頭が突き抜けていた)
+        const helmetGeo = new THREE.SphereGeometry(0.15, 20, 16);
         const helmet = this.addMesh(helmetGeo, Materials.helmet, 'pilotHelmet');
-        helmet.position.set(seatX + 0.02, seatY + 0.62, 0);
+        helmet.position.set(seatX + 0.02, seatY + 0.42, 0);
         pilot.add(helmet);
 
         // --- バイザー (顔前面の暗いシールド) ---
         const visorGeo = new THREE.SphereGeometry(
-            0.155, 16, 12,
+            0.145, 16, 12,
             Math.PI * 0.15, Math.PI * 0.5,   // 横方向の弧 (前面のみ)
             Math.PI * 0.35, Math.PI * 0.4    // 縦方向の弧 (顔の高さ)
         );
         const visor = this.addMesh(visorGeo, Materials.visor, 'pilotVisor');
-        visor.position.set(seatX + 0.02, seatY + 0.6, 0);
+        visor.position.set(seatX + 0.02, seatY + 0.40, 0);
         pilot.add(visor);
 
         // --- 酸素マスク風の前方の出っ張り ---
-        const maskGeo = new THREE.SphereGeometry(0.07, 12, 8);
+        const maskGeo = new THREE.SphereGeometry(0.06, 12, 8);
         const mask = this.addMesh(maskGeo, Materials.frame, 'pilotMask');
-        mask.position.set(seatX + 0.15, seatY + 0.55, 0);
+        mask.position.set(seatX + 0.14, seatY + 0.36, 0);
         pilot.add(mask);
 
         // --- 肩〜腕 (左右) ---
