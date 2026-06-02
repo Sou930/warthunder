@@ -269,6 +269,41 @@ export const Materials = {
     }),
 };
 
+/**
+ * 塗装スキーム定義 — SEA迷彩 (ベトナム) と 無塗装メタル/エアスペリオリティ
+ * の 2 種を切り替えられるよう、対象マテリアルごとの色を保持する。
+ *
+ * setCamoScheme() がこのテーブルを参照して Materials の color を上書きする。
+ *   - sea  : USAF SEA 3色迷彩 (ダーク/ミディアムグリーン + タン + ライトグレー下面)
+ *   - bare : 迷彩オフ (無塗装ジュラルミン / ガルグレー基調の単色)
+ */
+export const CamoSchemes = {
+    sea: {
+        body:      0x3d4a35, // ダークグリーン (上面主色)
+        camoGreen: 0x556140, // ミディアムグリーン
+        camoTan:   0x7a6a45, // タン
+        underside: 0xb9bcc0, // ライトガルグレー (下面)
+    },
+    bare: {
+        // 迷彩オフ: 無塗装ジュラルミン風シルバー基調の単色塗装
+        body:      0xb4bac0,
+        camoGreen: 0xa9b0b6,
+        camoTan:   0x9ea6ad,
+        underside: 0xc6cace,
+    },
+};
+
+/**
+ * 指定スキームの色を Materials の該当マテリアルへ適用する。
+ * @param {"sea"|"bare"} schemeName
+ */
+export function setCamoScheme(schemeName) {
+    const scheme = CamoSchemes[schemeName] || CamoSchemes.sea;
+    for (const key of Object.keys(scheme)) {
+        if (Materials[key]) Materials[key].color.setHex(scheme[key]);
+    }
+}
+
 /** ヒットボックス可視化用の半透明ワイヤーマテリアル */
 export function makeHitboxMaterial() {
     return new THREE.MeshBasicMaterial({
