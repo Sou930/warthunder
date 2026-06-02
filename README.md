@@ -1,190 +1,121 @@
-# War Thunder 風 航空機ビューワー (MiG-21 / F-4 Phantom II)
+# War Thunder Style Aircraft Viewer
 
-Three.js 製の航空機ビューワーです。将来 War Thunder のような航空機ゲームを
-作るための **基盤** として、まずは「機体を表示するだけ」のビューワーを実装しています。
-飛行・戦闘機能はまだ含みません。
+Three.jsで制作した航空機ビューワーです。
 
-機体は **外部 3D モデルを使わず**、Three.js のジオメトリのみで手続き的に生成しています。
+将来的なWar Thunder風の航空機ゲーム開発に向けた基盤として作成しており、現在は航空機の表示・観察機能を実装しています。
 
-現在 **2 機種** を収録し、右上パネルのドロップダウンで切り替えできます:
+外部3Dモデルは使用せず、すべてThree.jsのジオメトリのみで機体を手続き的に生成しています。
 
-| 機体 | 特徴 |
-|------|------|
-| **MiG-21MF** (単発・単座) | 機首円形インテーク + 可動ショックコーン + 長いピトーブーム、クリップトデルタ翼 + 境界層フェンス、下面の明色塗り分け、パネルライン、機首/尾翼の**赤星マーキング (白縁付き)**、ブレードアンテナ、ブレーキパラシュート筒、ノズル焼け色、翼端航法灯、**R-3S / R-60 ミサイル + 中心線増槽 (表示 ON/OFF 可)** |
-| **F-4E Phantom II** (双発・複座) | 機首ソリッドレドーム + IRSTフェアリング、側面インテーク (可変ランプ/スプリッター/白内壁)、ドッグトゥース付き上反外翼、強アンヒドラル水平尾翼、双発アフターバーナー、タンデム複座 (Pilot + WSO + HUD/ミラー)、**SEA迷彩塗装 (3色, ON/OFF 切替可)**、**USAF スター&バー国籍マーク**、衝突防止灯/フォーメーションライト、**AIM-7/AIM-9 ミサイル + 増槽**、パネルライン/航法灯 |
+---
 
-### 新しいコントロール
+## Features
 
-- **SEA迷彩塗装 ON/OFF** … F-4 の塗装を「USAF SEA 3色迷彩」⇄「無塗装メタル単色」で切り替え (F-4 のみ有効)
-- **MiG-21MF 兵装** … R-3S "Atoll" ×2 (内側) + R-60 "Aphid" ×2 (外側) + 中心線 800L 増槽。兵装トグルで表示/非表示
-- **明るさスライダー** … シーンの全ライト (環境光/太陽/フィル/半球光) とトーンマッピング露出を 0.2〜2.0 倍で一括調整
+### MiG-21MF
 
-### F-4E Phantom II のリアリティ強化 (高精度モデル)
+* 円形インテーク
+* 可動ショックコーン
+* クリップトデルタ翼
+* ソ連赤星マーキング
+* R-3S / R-60 ミサイル
+* 中心線増槽
+* アフターバーナー演出
+* 航法灯・アンテナ・パネルライン
 
-F-4 は実機の特徴を高精度で再現するよう作り込んでいます:
+### F-4E Phantom II
 
-- **塗装**: USAF SEA (ベトナム) 迷彩 ― ダーク/ミディアムグリーン + タンの上面 3 色塗り分け + ライトグレー下面
-- **胴体**: エリアルール由来のくびれ、ドループノーズ強調、機首下 IRST フェアリング、背部スパイン、パネルライン (スジ彫り)、アレスティングフック、無塗装金属のテール
-- **主翼**: ドッグトゥース、強い上反外翼 (カソードラル)、前縁スラット、後縁フラップ/エルロン分割、翼端航法灯 (右=緑/左=赤)、翼下 370gal 増槽
-- **尾翼**: 後退垂直尾翼 + ラダー + 頂部フェアリング、ドーサルフィン、強アンヒドラル全遊動スタビレーター (前縁スリット付き)
-- **コックピット**: タンデム複座バブルキャノピー (クリアコート)、前風防/中央桁/後端フレーム、HUD コンバイナ、バックミラー、計器盤/レーダースコープ、ハーネス付き着座パイロット 2 名
-- **エンジン**: J79 双発ノズル (18 枚ペタル + 焼け色 + フレームホルダー + タービンハブ)
-- **降着装置**: 2 段オレオ + シザーズリンク、ホイールハブ/ブレーキディスク、白塗装ギアベイ、着陸灯
-- **兵装** (表示 ON/OFF 可): AIM-7 Sparrow ×4 (胴体下半埋め込み)、AIM-9 Sidewinder ×4 (翼パイロン)
+* 双発・複座コックピット
+* 側面インテーク
+* SEA迷彩切替
+* AIM-7 Sparrow ×4
+* AIM-9 Sidewinder ×4
+* HUD・WSO席
+* 双発アフターバーナー
+* 航法灯・フォーメーションライト
 
-> 機体は `?aircraft=f4phantom` を URL に付けると初期表示できます。
+---
 
-### MiG-21MF のリアリティ強化 (実機準拠ディテール)
+## Viewer Functions
 
-MiG-21 も実機の象徴的な特徴を作り込み、より実機に近づけています:
+* 機体切替
+* 降着装置表示切替
+* 兵装表示切替
+* ワイヤーフレーム表示
+* ヒットボックス表示
+* 自動回転
+* シーン明るさ調整
+* アフターバーナーON/OFF
+* 推力レベル調整
+* OrbitControlsによる自由視点操作
 
-- **塗装**: 上面は無塗装ジュラルミン風シルバー、下面は明るいブルーグレーで上下塗り分け
-- **機首**: ショックコーン先端から前方へ伸びる長いピトーブーム + 先端プローブ、機首側面の迎角(AoA)ベーン、インテーク前縁の磨き金属リング
-- **主翼**: 前縁後退角 約57° の**クリップトデルタ** (翼端を切り落とした台形)、翼上面の**境界層フェンス**、翼端航法灯 (右=緑/左=赤)、翼上面パネルライン
-- **胴体**: 全周パネルライン (スジ彫り)、背部ブレードアンテナ + ホイップアンテナ、胴体下面エアブレーキ板
-- **尾翼**: 垂直尾翼頂部の白色航法灯 + ESM/RWR フェアリング、垂直尾翼付け根後方の**ブレーキパラシュート格納筒**、ラダー/前縁パネルライン
-- **マーキング**: 機首側面・垂直尾翼の**ソ連赤星 (白縁取り付き 5 芒星)**
-- **エンジン**: J/R13 ノズル後縁の焼け色リング
+---
 
-## 特徴
+## Controls
 
-- 円形エアインテーク + 中央**可動**ショックコーン (前後スライドをアニメーション)
-- 細長い葉巻型胴体 (LatheGeometry)
-- 強い後退角のデルタ翼 (ExtrudeGeometry)
-- バブルキャノピー (半透明) + 射出座席 + **着座パイロット** (ヘルメット/バイザー/四肢)
-- 大型の後退垂直尾翼 + 全遊動水平尾翼 + 腹びれ
-- 三輪式降着装置 (表示/非表示切替可能)
-- **本格的なアフターバーナーアニメーション**
-  - 多層の炎プルーム (白青コア / オレンジ中間 / 赤外殻、加算合成で発光)
-  - 周期的に流れるショックダイヤモンド (マッハディスク)
-  - 排気を映す発光ポイントライト
-  - ON/OFF + 推力 0〜100% スライダー
-- 見えない面のポリゴン削減 (openEnded 円錐/円筒、セグメント数最適化、裏面非描画)
-- OrbitControls による 回転 / ズーム / パン
-- ヒットボックス / ワイヤーフレーム / 自動回転 のトグル
+| 操作  | マウス     |
+| --- | ------- |
+| 回転  | 左ドラッグ   |
+| パン  | 右ドラッグ   |
+| ズーム | マウスホイール |
 
-## 起動方法
+---
 
-ES Modules と `fetch()` を使うため、**ローカルサーバー経由**で開いてください
-(`file://` で直接開くと動きません)。
+## Project Structure
 
-```bash
-# プロジェクトルートで
-python3 -m http.server 8000
-# → ブラウザで http://localhost:8000/ を開く
+```text
+project/
+├─ index.html
+├─ style.css
+├─ script.js
+├─ libs/
+│   ├─ three.module.js
+│   └─ OrbitControls.js
+└─ models/
+    ├─ mig21/
+    └─ f4phantom/
 ```
 
-または Node 環境なら:
+---
+
+## Run
+
+ローカルサーバー経由で起動してください。
+
+```bash
+python3 -m http.server 8000
+```
+
+または
 
 ```bash
 npx serve .
 ```
 
-## 操作方法
+起動後、ブラウザで以下を開きます。
 
-| 操作 | マウス |
-|------|--------|
-| 回転 | 左ドラッグ |
-| パン | 右ドラッグ |
-| ズーム | ホイール |
-
-右上パネルで「降着装置」「ヒットボックス」「ワイヤーフレーム」「自動回転」を切替できます。
-
-## フォルダ構成
-
-```
-project/
-├─ index.html              # エントリ HTML (import map で 'three' を解決)
-├─ style.css               # UI / HUD スタイル
-├─ script.js               # Scene/Camera/Renderer/Light/Loop/Controls
-│
-├─ libs/
-│   ├─ three.module.js     # Three.js 本体 (r160)
-│   └─ OrbitControls.js    # カメラ操作
-│
-└─ models/
-    ├─ mig21/                    # MiG-21MF (単発・単座)
-    │   ├─ aircraft.json    # 機体スペック
-    │   ├─ model.js         # 各パーツを組み立てて 1 機を構成
-    │   ├─ parts/
-    │   │   ├─ AircraftPart.js   # 全パーツの基底クラス (共通 IF)
-    │   │   ├─ materials.js      # 共有マテリアル定義
-    │   │   ├─ fuselage.js       # 胴体 + インテーク + ショックコーン
-    │   │   ├─ cockpit.js        # キャノピー + 座席
-    │   │   ├─ engine.js         # ノズル + アフターバーナー
-    │   │   ├─ wing.js           # デルタ翼 (左右共通基底)
-    │   │   ├─ leftWing.js       # 左翼ラッパー
-    │   │   ├─ rightWing.js      # 右翼ラッパー
-    │   │   ├─ tail.js           # 垂直/水平尾翼 + 腹びれ
-    │   │   ├─ landingGear.js    # 三輪式降着装置
-    │   │   └─ weapons.js        # R-3S/R-60 ミサイル + 中心線増槽
-    │   ├─ data/
-    │   │   ├─ hitboxes.json     # ヒットボックス (DamageSystem 用)
-    │   │   ├─ fuel.json         # 燃料タンク (FlightModel 用)
-    │   │   └─ armor.json        # 装甲/モジュール (DamageSystem 用)
-    │   └─ textures/             # 将来のテクスチャ置き場
-    │
-    └─ f4phantom/                # F-4E Phantom II (双発・複座) — mig21 と同じ構成
-        ├─ aircraft.json
-        ├─ model.js              # F4PhantomModel
-        ├─ parts/
-        │   ├─ AircraftPart.js
-        │   ├─ materials.js      # USAF/USN 迷彩グレー基調
-        │   ├─ fuselage.js       # 機首レドーム + 側面インテーク + 扁平葉巻胴体
-        │   ├─ cockpit.js        # タンデム複座キャノピー + パイロット2名
-        │   ├─ engine.js         # 双発 J79 ノズル + アフターバーナー ×2
-        │   ├─ wing.js           # ドッグトゥース付き上反外翼 (カソードラル)
-        │   ├─ leftWing.js
-        │   ├─ rightWing.js
-        │   ├─ tail.js           # 垂直尾翼 + ラダー + 強アンヒドラル水平尾翼
-        │   ├─ landingGear.js    # 三輪式降着装置 (オレオ/ベイ/着陸灯)
-        │   └─ weapons.js        # AIM-7/AIM-9 ミサイル兵装
-        └─ data/
-            ├─ hitboxes.json
-            ├─ fuel.json
-            └─ armor.json
+```text
+http://localhost:8000/
 ```
 
-## 設計方針 (将来拡張)
+---
 
-将来 `DamageSystem` / `FlightModel` / `WeaponSystem` / `RadarSystem` /
-`MissileSystem` / `Multiplayer` を追加しやすいよう、以下を意識しています。
+## Future Plans
 
-- **各パーツは独立クラス/モジュール** … `AircraftPart` を継承。
-  `applyDamage()` / `health` / `dispose()` など共通 IF を持つ。
-- **メッシュに `userData.part` を埋め込み** … レイキャストで被弾パーツを逆引き可能。
-- **データ駆動** … hitbox / fuel / armor を JSON 外部化。新機体は
-  `models/<name>/` を増やすだけで追加可能な構造。
-- **翼端ハードポイント** (`Wing.hardpoint`) … WeaponSystem がここに
-  ミサイルを取り付ける想定。
-- **ショックコーン = レドーム** … RadarSystem の格納位置として予約。
+今後は以下のシステムを追加予定です。
 
-### 座標系
+* FlightModel
+* DamageSystem
+* WeaponSystem
+* RadarSystem
+* MissileSystem
+* Multiplayer
 
-- `+X` = 機首方向 (前方)
-- `+Y` = 上
-- `+Z` = 右翼方向
+機体構成はモジュール化されており、新しい航空機を容易に追加できる設計になっています。
 
-## 新しい機体を追加するには
+---
 
-F-4 Phantom II は MiG-21 とまったく同じ手順で追加されています。
-新機体も同様に:
+## Tech Stack
 
-1. `models/<aircraft_name>/` を作成 (mig21 / f4phantom をテンプレに)
-2. `parts/` 以下に `AircraftPart` を継承したパーツを実装
-3. `model.js` でパーツを組み立て (共通 IF: `setGearVisible` / `setHitboxVisible` /
-   `setWireframe` / `setAfterburner` / `setAfterburnerLevel` / `setShockCone` /
-   `update` / `dispose` を実装。任意で `setWeaponsVisible` / `setCamo` も実装可能)
-4. `aircraft.json` / `data/*.json` を用意
-5. `script.js` の `AIRCRAFT` カタログに 1 エントリ追加
-   (`{ label, base, ModelClass, hasShockCone }`) し、
-   `index.html` の `#aircraft-select` に `<option>` を 1 行足す
-
-> `hasShockCone: false` を指定すると、その機体ではショックコーン UI が
-> 自動的に無効化される (F-4 のように可動コーンを持たない機体向け)。
-
-## 技術スタック
-
-- HTML / CSS / JavaScript (ES6 Modules)
-- [Three.js](https://threejs.org/) r160
-- OrbitControls
+* JavaScript (ES6 Modules)
+* Three.js r160
+* OrbitControls
+* HTML5 / CSS3
