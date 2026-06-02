@@ -33,17 +33,19 @@ export class Wing extends AircraftPart {
         // ----------------------------------------------------------
         const root = 0.0;        // 付け根 (胴体接続)
         const span = 3.3;        // 片翼スパン
-        const leadingRootX = 1.6;  // 付け根前縁位置
+        const leadingRootX = 1.85;  // 付け根前縁位置 (前方へ伸ばし後退角を強調)
         const trailingRootX = -1.9; // 付け根後縁位置
-        const tipX = -1.4;        // 翼端の前後位置 (後退角で後ろへ)
-        const tipChord = 0.5;     // 翼端コード長
+        // 実機 MiG-21 はクリップトデルタ — 翼端が短く切り落とされている
+        const tipFrontX = -1.05;  // 翼端前縁の前後位置 (前縁後退角 約57°)
+        const tipRearX = -1.55;   // 翼端後縁の前後位置
+        const tipChord = tipFrontX - tipRearX; // 翼端コード長 (短い)
 
         const shape = new THREE.Shape();
-        // 付け根前縁 → 翼端前縁 → 翼端後縁 → 付け根後縁
+        // 付け根前縁 → 翼端前縁 → 翼端後縁(クリップ) → 付け根後縁
         shape.moveTo(leadingRootX, root);
-        shape.lineTo(tipX + tipChord, span);   // 前縁 (強い後退角)
-        shape.lineTo(tipX, span);              // 翼端
-        shape.lineTo(trailingRootX, root);     // 後縁
+        shape.lineTo(tipFrontX, span);         // 前縁 (強い後退角 ~57°)
+        shape.lineTo(tipRearX, span);          // 翼端 (切り落とし)
+        shape.lineTo(trailingRootX, root);     // 後縁 (ほぼ直角)
         shape.closePath();
 
         const extrudeSettings = {
@@ -68,13 +70,15 @@ export class Wing extends AircraftPart {
         // 上反角 (わずか)
         wing.rotation.x = dir * THREE.MathUtils.degToRad(-2);
 
+        const tipMidX = (tipFrontX + tipRearX) / 2; // 翼端中央 X
+
         // ----------------------------------------------------------
         //  翼端のミサイルランチャーレール (ハードポイントの土台)
         //  将来 WeaponSystem がここにミサイルを取り付ける想定。
         // ----------------------------------------------------------
         const railGeo = new THREE.BoxGeometry(0.9, 0.08, 0.1);
         const rail = this.addMesh(railGeo, Materials.bodyDark, 'pylonRail');
-        rail.position.set(tipX + tipChord * 0.5, -0.12, dir * (span - 0.1));
+        rail.position.set(tipMidX, -0.12, dir * (span - 0.1));
 
         // ハードポイント参照 (WeaponSystem 用に座標を公開)
         this.hardpoint = new THREE.Object3D();
@@ -86,7 +90,40 @@ export class Wing extends AircraftPart {
         //  エルロン/フラップの分割ライン (見た目のディテール)
         // ----------------------------------------------------------
         const lineGeo = new THREE.BoxGeometry(0.04, 0.14, span * 0.9);
-        const line = this.addMesh(lineGeo, Materials.bodyDark, 'controlSurfaceLine');
+        const line = this.addMesh(lineGeo, Materials.panelLine, 'controlSurfaceLine');
         line.position.set(trailingRootX + 0.35, -0.1, dir * (span * 0.5 + 0.3));
+
+        // ----------------------------------------------------------
+        //  境界層フェンス (Boundary-layer fence) — 翼上面の前後方向の薄板。
+        //  実機 MiG-21 の象徴的なディテール。各翼に 1 枚。
+        // ----------------------------------------------------------
+        const fenceShape = new THREE.Shape();
+        fenceShape.moveTo(1.2, 0);
+        fenceShape.lineTo(-1.4, 0);
+        fenceShape.lineTo(-1.4, 0.12);
+        fenceShape.lineTo(1.2, 0.16);
+        fenceShape.closePath();
+        const fenceGeo = new THREE.ExtrudeGeometry(fenceShape, {
+            depth: 0.02, bevelEnabled: false,
+        });
+        // XY 平面の板を XZ(翼上面)に立てる: Z 方向(スパン)の位置に薄く立てる
+        const fence = this.addMesh(fenceGeo, Materials.bodyDark, 'boundaryFence');
+        fence.position.set(-0.1, 0.0, dir * (span * 0.62));
+        fence.rotation.y = -Math.PI / 2; // 板面を前後方向に向ける
+
+        // ----------------------------------------------------------
+        //  翼端航法灯 (右=緑 / 左=赤) — クリップした翼端前縁に埋め込む。
+        // ----------------------------------------------------------
+        const navGeo = new THREE.SphereGeometry(0.06, 10, 8);
+        const navMat = dir === 1 ? Materials.navLightGreen : Materials.navLightRed;
+        const nav = this.addMesh(navGeo, navMat, 'navLight');
+        nav.position.set(tipFrontX, -0.05, dir * (span - 0.02));
+
+        // ----------------------------------------------------------
+        //  翼上面のパネルライン (スパン方向 + 翼弦方向の簡易スジ彫り)
+        // ----------------------------------------------------------
+        const spanLineGeo = new THREE.BoxGeometry(0.02, 0.13, span * 0.85);
+        const spanLine = this.addMesh(spanLineGeo, Materials.panelLine, 'wingPanelSpan');
+        spanLine.position.set(0.4, -0.06, dir * (span * 0.5));
     }
 }

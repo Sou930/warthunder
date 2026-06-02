@@ -38,6 +38,12 @@ export class Engine extends AircraftPart {
         const shell = this.addMesh(shellGeo, Materials.nozzle, 'nozzleShell');
         shell.position.set(tailX, 0, 0);
 
+        // ノズル後縁の焼け色リング (高温で変色した排気リップ)
+        const burntGeo = new THREE.CylinderGeometry(0.4, 0.42, 0.22, 28, 1, true);
+        burntGeo.rotateZ(-Math.PI / 2);
+        const burnt = this.addMesh(burntGeo, Materials.nozzleBurnt, 'nozzleBurntRing');
+        burnt.position.set(tailX - 0.45, 0, 0);
+
         // ----------------------------------------------------------
         //  可変ノズルフラップ (円周上に並ぶペタル) — 雰囲気付け
         // ----------------------------------------------------------

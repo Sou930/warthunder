@@ -267,6 +267,34 @@ export const Materials = {
         emissiveIntensity: 0.8,
         roughness: 0.4,
     }),
+    navLightWhite: new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        emissive: 0xfff2d0,
+        emissiveIntensity: 0.7,
+        roughness: 0.4,
+    }),
+
+    /** 国籍マーク (USAF スター&バー) — 紺地 */
+    insigniaBlue: new THREE.MeshStandardMaterial({
+        color: 0x14296b,
+        metalness: 0.1,
+        roughness: 0.55,
+        side: THREE.DoubleSide,
+    }),
+    /** 国籍マーク — 白星/バー */
+    insigniaWhite: new THREE.MeshStandardMaterial({
+        color: 0xf2f4f6,
+        metalness: 0.1,
+        roughness: 0.5,
+        side: THREE.DoubleSide,
+    }),
+    /** 国籍マーク — 赤ストライプ */
+    insigniaRed: new THREE.MeshStandardMaterial({
+        color: 0xc41218,
+        metalness: 0.1,
+        roughness: 0.55,
+        side: THREE.DoubleSide,
+    }),
 };
 
 /**
