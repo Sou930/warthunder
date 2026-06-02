@@ -43,8 +43,38 @@ export class Tail extends AircraftPart {
 
         // ラダー分割ライン
         const rudderLineGeo = new THREE.BoxGeometry(0.05, 1.9, 0.16);
-        const rudderLine = this.addMesh(rudderLineGeo, Materials.bodyDark, 'rudderLine');
+        const rudderLine = this.addMesh(rudderLineGeo, Materials.panelLine, 'rudderLine');
         rudderLine.position.set(-3.55, 1.6, 0);
+
+        // ----------------------------------------------------------
+        //  垂直尾翼上端の航法灯 (白) + 頂部の RWR/ESM フェアリング
+        // ----------------------------------------------------------
+        const finTipGeo = new THREE.SphereGeometry(0.07, 10, 8);
+        const finTip = this.addMesh(finTipGeo, Materials.navLightWhite, 'finTopLight');
+        finTip.position.set(-5.05, 2.75, 0);
+
+        const esmGeo = new THREE.BoxGeometry(0.5, 0.18, 0.16);
+        const esm = this.addMesh(esmGeo, Materials.dielectric, 'finEsmFairing');
+        esm.position.set(-3.0, 2.78, 0);
+
+        // 垂直尾翼のパネルライン (前縁付近のスジ彫り)
+        const finPanelGeo = new THREE.BoxGeometry(0.04, 1.9, 0.18);
+        const finPanel = this.addMesh(finPanelGeo, Materials.panelLine, 'finPanelLine');
+        finPanel.position.set(-2.6, 1.5, 0);
+
+        // ----------------------------------------------------------
+        //  ブレーキパラシュート格納筒 — テールコーン基部の円筒フェアリング。
+        //  実機 MiG-21 は垂直尾翼付け根後方にドラッグシュート筒を持つ。
+        // ----------------------------------------------------------
+        const chuteGeo = new THREE.CylinderGeometry(0.22, 0.2, 0.8, 16);
+        chuteGeo.rotateZ(-Math.PI / 2);
+        const chute = this.addMesh(chuteGeo, Materials.bodyDark, 'brakeChuteHousing');
+        chute.position.set(-5.55, 0.55, 0);
+        // 筒後端のキャップ
+        const capGeo = new THREE.CylinderGeometry(0.21, 0.16, 0.1, 16);
+        capGeo.rotateZ(-Math.PI / 2);
+        const cap = this.addMesh(capGeo, Materials.bareMetal, 'brakeChuteCap');
+        cap.position.set(-5.98, 0.55, 0);
 
         // ----------------------------------------------------------
         //  水平尾翼 (スタビレーター) — 左右
@@ -93,5 +123,62 @@ export class Tail extends AircraftPart {
         vfGeo.computeVertexNormals();
         const ventral = this.addMesh(vfGeo, Materials.bodyDark, 'ventralFin');
         ventral.position.set(-2.0, -0.7, 0);
+
+        // ----------------------------------------------------------
+        //  垂直尾翼の赤星マーキング (左右)
+        // ----------------------------------------------------------
+        for (const dir of [1, -1]) {
+            const star = this._makeRedStar(0.42);
+            star.position.set(-3.0, 1.5, dir * 0.1);
+            star.rotation.y = dir === 1 ? 0 : Math.PI;
+            this.group.add(star);
+        }
+    }
+
+    /**
+     * 白縁取り付きの赤い 5 芒星メッシュを生成 (垂直尾翼用)。
+     * @param {number} size 外接半径
+     * @returns {THREE.Group}
+     */
+    _makeRedStar(size) {
+        const g = new THREE.Group();
+        g.name = 'tailRedStar';
+
+        const starShape = (radius) => {
+            const s = new THREE.Shape();
+            const spikes = 5;
+            const inner = radius * 0.42;
+            for (let i = 0; i < spikes * 2; i++) {
+                const r = i % 2 === 0 ? radius : inner;
+                const a = (i / (spikes * 2)) * Math.PI * 2 - Math.PI / 2;
+                const x = Math.cos(a) * r;
+                const y = Math.sin(a) * r;
+                if (i === 0) s.moveTo(x, y);
+                else s.lineTo(x, y);
+            }
+            s.closePath();
+            return s;
+        };
+
+        const outlineGeo = new THREE.ExtrudeGeometry(starShape(size), {
+            depth: 0.012, bevelEnabled: false,
+        });
+        const outline = new THREE.Mesh(outlineGeo, Materials.starOutline);
+        outline.name = 'tailRedStar:outline';
+        outline.userData.part = this;
+        this.meshes.push(outline);
+        g.add(outline);
+
+        const redGeo = new THREE.ExtrudeGeometry(starShape(size * 0.82), {
+            depth: 0.014, bevelEnabled: false,
+        });
+        const red = new THREE.Mesh(redGeo, Materials.redStar);
+        red.name = 'tailRedStar:fill';
+        red.userData.part = this;
+        red.position.z = 0.004;
+        this.meshes.push(red);
+        g.add(red);
+
+        return g;
     }
 }

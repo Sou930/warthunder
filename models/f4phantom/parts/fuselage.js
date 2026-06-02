@@ -157,6 +157,112 @@ export class Fuselage extends AircraftPart {
         //  胴体パネルライン (スジ彫り風) — 細い溝メッシュを巻く。
         // ----------------------------------------------------------
         this._buildPanelLines();
+
+        // ----------------------------------------------------------
+        //  国籍マーキング (USAF スター&バー) — 後部胴体側面 左右。
+        // ----------------------------------------------------------
+        this._buildNationalMarkings();
+
+        // ----------------------------------------------------------
+        //  フォーメーションライト / 衝突防止灯 — 胴体背部の小型灯火。
+        // ----------------------------------------------------------
+        this._buildFormationLights();
+    }
+
+    /**
+     * USAF スター&バー (insignia) を後部胴体側面の左右に配置する。
+     * 迷彩切替の影響を受けない独立マテリアルで描く。
+     */
+    _buildNationalMarkings() {
+        for (const dir of [1, -1]) {
+            const insignia = this._makeStarAndBar(0.5);
+            insignia.position.set(-3.6, 0.15, dir * 1.14);
+            insignia.rotation.y = dir === 1 ? 0 : Math.PI;
+            insignia.rotation.x = Math.PI / 2;
+            this.group.add(insignia);
+        }
+    }
+
+    /**
+     * USAF スター&バー記章メッシュを生成して返す。
+     *   - 紺の円盤 + 白い5芒星 + 左右の白バー(赤縁) の簡略版。
+     * @param {number} size 星の外接半径
+     * @returns {THREE.Group}
+     */
+    _makeStarAndBar(size) {
+        const g = new THREE.Group();
+        g.name = 'starAndBar';
+
+        // 紺の円盤 (星の背景)
+        const discGeo = new THREE.CircleGeometry(size, 24);
+        const disc = new THREE.Mesh(discGeo, Materials.insigniaBlue);
+        disc.name = 'insignia:disc';
+        disc.userData.part = this;
+        this.meshes.push(disc);
+        g.add(disc);
+
+        // 白い5芒星
+        const starShape = new THREE.Shape();
+        const spikes = 5;
+        const rOuter = size * 0.92;
+        const rInner = rOuter * 0.4;
+        for (let i = 0; i < spikes * 2; i++) {
+            const r = i % 2 === 0 ? rOuter : rInner;
+            const a = (i / (spikes * 2)) * Math.PI * 2 + Math.PI / 2;
+            const x = Math.cos(a) * r;
+            const y = Math.sin(a) * r;
+            if (i === 0) starShape.moveTo(x, y);
+            else starShape.lineTo(x, y);
+        }
+        starShape.closePath();
+        const starGeo = new THREE.ShapeGeometry(starShape);
+        const star = new THREE.Mesh(starGeo, Materials.insigniaWhite);
+        star.name = 'insignia:star';
+        star.userData.part = this;
+        star.position.z = 0.01;
+        this.meshes.push(star);
+        g.add(star);
+
+        // 左右の白バー (赤縁) — 円盤の両脇に水平に伸びる
+        const barLen = size * 1.0;
+        const barH = size * 0.78;
+        for (const s of [1, -1]) {
+            // 赤縁 (バーよりわずかに大)
+            const redGeo = new THREE.PlaneGeometry(barLen + 0.04, barH + 0.04);
+            const red = new THREE.Mesh(redGeo, Materials.insigniaRed);
+            red.name = 'insignia:barRed';
+            red.userData.part = this;
+            red.position.set(s * (size + barLen / 2), 0, 0.006);
+            this.meshes.push(red);
+            g.add(red);
+
+            // 白バー
+            const whiteGeo = new THREE.PlaneGeometry(barLen, barH);
+            const white = new THREE.Mesh(whiteGeo, Materials.insigniaWhite);
+            white.name = 'insignia:barWhite';
+            white.userData.part = this;
+            white.position.set(s * (size + barLen / 2), 0, 0.012);
+            this.meshes.push(white);
+            g.add(white);
+        }
+
+        return g;
+    }
+
+    /**
+     * フォーメーションライト / 衝突防止灯 (アンチコリジョンビーコン)。
+     * 背部スパイン頂部の赤灯 + 機首下面の白灯など。
+     */
+    _buildFormationLights() {
+        // 背部の赤い衝突防止灯
+        const beaconGeo = new THREE.SphereGeometry(0.08, 10, 8);
+        const beacon = this.addMesh(beaconGeo, Materials.navLightRed, 'antiCollisionBeacon');
+        beacon.position.set(-1.2, 1.18, 0);
+
+        // 機首下面の白い識別灯
+        const idGeo = new THREE.SphereGeometry(0.06, 8, 6);
+        const id = this.addMesh(idGeo, Materials.navLightWhite, 'idLight');
+        id.position.set(4.0, -0.7, 0);
     }
 
     /**

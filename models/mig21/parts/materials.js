@@ -12,7 +12,14 @@ export const Materials = {
     /** 機体本体 (ソ連空軍の無塗装ジュラルミン風シルバー) */
     body: new THREE.MeshStandardMaterial({
         color: 0xb7bcc2,
-        metalness: 0.75,
+        metalness: 0.78,
+        roughness: 0.38,
+    }),
+
+    /** 機体下面 (実機 MiG-21 は下面が明るいシルバー/ライトブルーグレー) */
+    underside: new THREE.MeshStandardMaterial({
+        color: 0xcfd4d9,
+        metalness: 0.7,
         roughness: 0.42,
     }),
 
@@ -20,6 +27,47 @@ export const Materials = {
     bodyDark: new THREE.MeshStandardMaterial({
         color: 0x8b9097,
         metalness: 0.8,
+        roughness: 0.4,
+    }),
+
+    /** パネルライン / スジ彫りの陰影 (細い溝の色) */
+    panelLine: new THREE.MeshStandardMaterial({
+        color: 0x6b7177,
+        metalness: 0.6,
+        roughness: 0.55,
+    }),
+
+    /** 無塗装の磨かれた金属パネル (機首前縁・補強板のアクセント) */
+    bareMetal: new THREE.MeshStandardMaterial({
+        color: 0xc8ccd0,
+        metalness: 0.95,
+        roughness: 0.22,
+    }),
+
+    /** ダイエレクトリック (アンテナ/ESM フェアリングの誘電体カバー — 緑がかった樹脂) */
+    dielectric: new THREE.MeshStandardMaterial({
+        color: 0x4a5a4c,
+        metalness: 0.15,
+        roughness: 0.6,
+    }),
+
+    /** 翼端・尾部の航法灯/フォーメーションライト (発光) */
+    navLightRed: new THREE.MeshStandardMaterial({
+        color: 0xff2a2a,
+        emissive: 0xff0000,
+        emissiveIntensity: 0.8,
+        roughness: 0.4,
+    }),
+    navLightGreen: new THREE.MeshStandardMaterial({
+        color: 0x2aff5a,
+        emissive: 0x00ff33,
+        emissiveIntensity: 0.8,
+        roughness: 0.4,
+    }),
+    navLightWhite: new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        emissive: 0xfff2d0,
+        emissiveIntensity: 0.7,
         roughness: 0.4,
     }),
 
@@ -63,6 +111,13 @@ export const Materials = {
         color: 0x3a3d40,
         metalness: 0.9,
         roughness: 0.35,
+    }),
+
+    /** ノズル後部の焼け (青〜紫がかった熱処理色) */
+    nozzleBurnt: new THREE.MeshStandardMaterial({
+        color: 0x6b5560,
+        metalness: 0.85,
+        roughness: 0.5,
     }),
 
     /** アフターバーナー内部の発光 (ノズル直後の高温コア) */
@@ -129,9 +184,18 @@ export const Materials = {
 
     /** 国籍マーク用の赤 (ソ連赤星) */
     redStar: new THREE.MeshStandardMaterial({
-        color: 0xcc2222,
-        metalness: 0.2,
-        roughness: 0.6,
+        color: 0xc41218,
+        metalness: 0.15,
+        roughness: 0.55,
+        side: THREE.DoubleSide,
+    }),
+
+    /** 赤星の白縁取り */
+    starOutline: new THREE.MeshStandardMaterial({
+        color: 0xf0f2f4,
+        metalness: 0.15,
+        roughness: 0.5,
+        side: THREE.DoubleSide,
     }),
 
     /** パイロットのフライトスーツ (オリーブ〜グレー布地) */
