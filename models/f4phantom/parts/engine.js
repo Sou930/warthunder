@@ -49,25 +49,39 @@ export class Engine extends AircraftPart {
     _buildNozzle(tailX, z, dir) {
         const side = dir === 1 ? 'R' : 'L';
 
-        // --- ノズル外殻 (後方に広がる円錐台) ---
-        const shellGeo = new THREE.CylinderGeometry(0.42, 0.36, 1.0, 24, 1, true);
+        // --- エンジンナセル後端 (ノズル手前の絞り・焼け色) ---
+        const nacelleGeo = new THREE.CylinderGeometry(0.46, 0.44, 0.7, 28, 1, true);
+        nacelleGeo.rotateZ(-Math.PI / 2);
+        const nacelle = this.addMesh(nacelleGeo, Materials.nozzleBurnt, `nacelle${side}`);
+        nacelle.position.set(tailX + 0.7, 0, z);
+
+        // --- ノズル外殻 (後方に広がる円錐台・無塗装焼け金属) ---
+        const shellGeo = new THREE.CylinderGeometry(0.42, 0.34, 1.0, 28, 1, true);
         shellGeo.rotateZ(-Math.PI / 2);
         const shell = this.addMesh(shellGeo, Materials.nozzle, `nozzleShell${side}`);
         shell.position.set(tailX, 0, z);
 
-        // --- 可変ノズルフラップ (ペタル) ---
-        const petalCount = 12;
+        // --- ノズル後縁リング (一番外の口) ---
+        const rimGeo = new THREE.TorusGeometry(0.35, 0.03, 8, 28);
+        rimGeo.rotateY(Math.PI / 2);
+        const rim = this.addMesh(rimGeo, Materials.nozzleBurnt, `nozzleRim${side}`);
+        rim.position.set(tailX - 0.5, 0, z);
+
+        // --- 可変ノズルフラップ (ペタル) — 数を増やしてリアルに ---
+        const petalCount = 18;
         for (let i = 0; i < petalCount; i++) {
             const angle = (i / petalCount) * Math.PI * 2;
-            const petalGeo = new THREE.BoxGeometry(0.45, 0.02, 0.1);
+            const petalGeo = new THREE.BoxGeometry(0.5, 0.025, 0.085);
             const petal = this.addMesh(petalGeo, Materials.nozzle, `petal${side}${i}`);
-            const r = 0.38;
+            const r = 0.37;
             petal.position.set(
-                tailX - 0.12,
+                tailX - 0.14,
                 Math.sin(angle) * r,
                 z + Math.cos(angle) * r
             );
             petal.rotation.x = angle;
+            // 後方すぼまりを表現するため僅かに内向き
+            petal.rotation.z = THREE.MathUtils.degToRad(-6);
         }
 
         // --- アフターバーナーコア (内側で発光する円錐) ---
@@ -76,10 +90,22 @@ export class Engine extends AircraftPart {
         const core = this.addMesh(coreGeo, Materials.afterburner.clone(), `afterburnerCore${side}`);
         core.position.set(tailX - 0.05, 0, z);
 
+        // --- タービン放射状ブレード (奥に見えるフレームホルダー) ---
+        const bladeCount = 8;
+        for (let i = 0; i < bladeCount; i++) {
+            const a = (i / bladeCount) * Math.PI * 2;
+            const bladeGeo = new THREE.BoxGeometry(0.06, 0.26, 0.02);
+            const blade = this.addMesh(bladeGeo, Materials.nozzle, `flameholder${side}${i}`);
+            blade.position.set(tailX + 0.18, 0, z);
+            blade.rotation.x = a;
+            blade.translateY(0.13);
+        }
+
         // --- タービン中心ハブ ---
-        const hubGeo = new THREE.SphereGeometry(0.1, 12, 8);
+        const hubGeo = new THREE.ConeGeometry(0.1, 0.34, 14);
+        hubGeo.rotateZ(-Math.PI / 2);
         const hub = this.addMesh(hubGeo, Materials.nozzle, `turbineHub${side}`);
-        hub.position.set(tailX + 0.1, 0, z);
+        hub.position.set(tailX + 0.2, 0, z);
 
         // --- 炎プルーム (多層) ---
         const plumeGroup = new THREE.Group();

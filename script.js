@@ -266,6 +266,21 @@ function updateShockConeUI(viewer) {
     }
 }
 
+/**
+ * 兵装トグル UI を機体に応じて有効/無効化する。
+ * setWeaponsVisible を実装する機体 (F-4) でのみ有効。
+ */
+function updateWeaponsUI(viewer) {
+    const supported = typeof viewer.model?.setWeaponsVisible === 'function';
+    const row = document.getElementById('toggle-weapons')?.closest('.toggle');
+    const cb = document.getElementById('toggle-weapons');
+    if (cb) cb.disabled = !supported;
+    if (row) {
+        row.classList.toggle('disabled-group', !supported);
+        row.title = supported ? '' : 'この機体は兵装データを持ちません';
+    }
+}
+
 function bindUI(viewer, config) {
     // スペック表示
     updateSpecPanel(config);
@@ -281,6 +296,7 @@ function bindUI(viewer, config) {
                 const newConfig = await viewer.loadAircraft(id);
                 updateSpecPanel(newConfig);
                 updateShockConeUI(viewer);
+                updateWeaponsUI(viewer);
                 syncControlsToModel(viewer);
                 updateFooter(viewer);
             } catch (err) {
@@ -297,10 +313,13 @@ function bindUI(viewer, config) {
     const wire = document.getElementById('toggle-wireframe');
     const rotate = document.getElementById('toggle-rotate');
 
+    const weapons = document.getElementById('toggle-weapons');
+
     gear?.addEventListener('change', (e) => viewer.model.setGearVisible(e.target.checked));
     hitbox?.addEventListener('change', (e) => viewer.model.setHitboxVisible(e.target.checked));
     wire?.addEventListener('change', (e) => viewer.model.setWireframe(e.target.checked));
     rotate?.addEventListener('change', (e) => { viewer.autoRotate = e.target.checked; });
+    weapons?.addEventListener('change', (e) => viewer.model.setWeaponsVisible?.(e.target.checked));
 
     // --- アフターバーナー制御 ---
     const ab = document.getElementById('toggle-afterburner');
@@ -335,6 +354,7 @@ function bindUI(viewer, config) {
 
     // 初期状態を機体に合わせて整える
     updateShockConeUI(viewer);
+    updateWeaponsUI(viewer);
     updateFooter(viewer);
 
     // パネルを表示
@@ -355,6 +375,7 @@ function syncControlsToModel(viewer) {
     model.setGearVisible(checked('toggle-gear'));
     model.setHitboxVisible(checked('toggle-hitbox'));
     model.setWireframe(checked('toggle-wireframe'));
+    model.setWeaponsVisible?.(checked('toggle-weapons'));
     viewer.autoRotate = checked('toggle-rotate');
     model.setAfterburner(checked('toggle-afterburner'));
     model.setAfterburnerLevel(val('slider-thrust') / 100);
@@ -398,7 +419,11 @@ async function main() {
     try {
         const container = document.getElementById('viewer');
         const viewer = new Viewer(container);
-        const config = await viewer.loadAircraft();
+        // URL パラメータ ?aircraft=f4phantom などで初期機体を選択可能に
+        const params = new URLSearchParams(window.location.search);
+        const initialId = params.get('aircraft');
+        const startId = (initialId && AIRCRAFT[initialId]) ? initialId : DEFAULT_AIRCRAFT;
+        const config = await viewer.loadAircraft(startId);
         bindUI(viewer, config);
         viewer.start();
         hideLoading();
