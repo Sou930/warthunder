@@ -231,13 +231,15 @@ export class Fuselage extends AircraftPart {
      * 白縁取り付きの 5 芒星を薄板で表現する。
      */
     _buildNationalMarkings() {
+        // 星は XY 平面の薄板で、押し出し方向(法線)は ±Z。
+        // よって胴体の「側面」に貼るには回転不要 (左面のみ反転)。
+        // x=3.6 付近の胴体半径 ≒ 0.73 なので、その表面に沿わせる。
         for (const dir of [1, -1]) {
-            const star = this._makeRedStar(0.34);
-            // 機首やや後方の側面 (胴体半径ぶん外へ)
-            star.position.set(3.6, 0.15, dir * 0.86);
-            // 側面に貼り付くよう回転 (XZ→側面)
+            const star = this._makeRedStar(0.3);
+            // 側面 (胴体半径ぶん外側) のやや下寄りに配置
+            star.position.set(3.4, 0.05, dir * 0.72);
+            // 右(+Z)面はそのまま、左(-Z)面は反転して外向きに
             star.rotation.y = dir === 1 ? 0 : Math.PI;
-            star.rotation.x = Math.PI / 2;
             this.group.add(star);
         }
     }

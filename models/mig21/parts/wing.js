@@ -73,17 +73,15 @@ export class Wing extends AircraftPart {
         const tipMidX = (tipFrontX + tipRearX) / 2; // 翼端中央 X
 
         // ----------------------------------------------------------
-        //  翼端のミサイルランチャーレール (ハードポイントの土台)
-        //  将来 WeaponSystem がここにミサイルを取り付ける想定。
+        //  翼下ハードポイント (WeaponSystem 用に座標を公開)
+        //  ※ 旧版は翼端に可視のランチャーレール (BoxGeometry) を置いていたが、
+        //    兵装は翼下パイロン (weapons.js) に吊るすため、翼端の宙に浮いた
+        //    レール板が「謎の灰色バー」として描画される不具合になっていた。
+        //    実機 MiG-21 も翼端レールは持たないので可視メッシュは廃止し、
+        //    不可視の参照点のみ残す。
         // ----------------------------------------------------------
-        const railGeo = new THREE.BoxGeometry(0.9, 0.08, 0.1);
-        const rail = this.addMesh(railGeo, Materials.bodyDark, 'pylonRail');
-        rail.position.set(tipMidX, -0.12, dir * (span - 0.1));
-
-        // ハードポイント参照 (WeaponSystem 用に座標を公開)
         this.hardpoint = new THREE.Object3D();
-        this.hardpoint.position.copy(rail.position);
-        this.hardpoint.position.y -= 0.15;
+        this.hardpoint.position.set(tipMidX, -0.27, dir * (span - 0.1));
         this.group.add(this.hardpoint);
 
         // ----------------------------------------------------------
