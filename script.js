@@ -18,8 +18,28 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Mig21Model } from './models/mig21/model.js';
+import { F4PhantomModel } from './models/f4phantom/model.js';
 
-const MODEL_BASE = './models/mig21/';
+/**
+ * 機体カタログ — id → { base, ModelClass, hasShockCone, label }
+ * 新機体を追加する場合はここに 1 エントリ足すだけでよい。
+ */
+const AIRCRAFT = {
+    mig21: {
+        label: 'MiG-21MF',
+        base: './models/mig21/',
+        ModelClass: Mig21Model,
+        hasShockCone: true,
+    },
+    f4phantom: {
+        label: 'F-4E Phantom II',
+        base: './models/f4phantom/',
+        ModelClass: F4PhantomModel,
+        hasShockCone: false,
+    },
+};
+
+const DEFAULT_AIRCRAFT = 'mig21';
 
 /**
  * Viewer — ビューワー全体を統括するクラス。
@@ -143,19 +163,36 @@ class Viewer {
     }
 
     // ---------------- Model loading ----------------
-    async loadAircraft() {
+    /**
+     * 指定した機体を読み込んでシーンに表示する。
+     * 既存モデルがあれば破棄して入れ替える (機体切替に対応)。
+     * @param {string} aircraftId  AIRCRAFT のキー
+     * @returns {Promise<object>}   aircraft.json の内容
+     */
+    async loadAircraft(aircraftId = DEFAULT_AIRCRAFT) {
+        const entry = AIRCRAFT[aircraftId] || AIRCRAFT[DEFAULT_AIRCRAFT];
+        this.currentAircraftId = aircraftId;
+        this.currentEntry = entry;
+
+        // 既存モデルがあれば取り除いて破棄
+        if (this.model) {
+            this.scene.remove(this.model.root);
+            this.model.dispose?.();
+            this.model = null;
+        }
+
         // aircraft.json (スペック) を取得
         let config = {};
         try {
-            const res = await fetch(MODEL_BASE + 'aircraft.json');
+            const res = await fetch(entry.base + 'aircraft.json');
             if (res.ok) config = await res.json();
         } catch (e) {
             console.warn('[Viewer] aircraft.json 読み込み失敗:', e.message);
         }
 
         // モデル組み立て
-        this.model = new Mig21Model(config);
-        await this.model.loadData(MODEL_BASE);
+        this.model = new entry.ModelClass(config);
+        await this.model.loadData(entry.base);
         this.scene.add(this.model.root);
 
         // 接地: ホイール下端がだいたい地面 (y=-2) に来るよう微調整済みのため
@@ -197,8 +234,7 @@ class Viewer {
 // ============================================================
 //  UI 配線
 // ============================================================
-function bindUI(viewer, config) {
-    // スペック表示
+function updateSpecPanel(config) {
     const set = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
@@ -208,6 +244,52 @@ function bindUI(viewer, config) {
     set('spec-length', config.length != null ? `${config.length} m` : '—');
     set('spec-wingspan', config.wingspan != null ? `${config.wingspan} m` : '—');
     set('spec-mass', config.mass != null ? `${config.mass.toLocaleString()} kg` : '—');
+}
+
+/**
+ * ショックコーン UI 行の有効/無効を機体に応じて切り替える。
+ * F-4 のようにショックコーンを持たない機体では行を無効化する。
+ */
+function updateShockConeUI(viewer) {
+    const hasShockCone = !!viewer.currentEntry?.hasShockCone;
+    const coneRow = document.getElementById('cone-control-group');
+    const coneAuto = document.getElementById('toggle-cone-auto');
+    const coneSlider = document.getElementById('slider-cone');
+    if (coneRow) {
+        coneRow.classList.toggle('disabled-group', !hasShockCone);
+        coneRow.title = hasShockCone ? '' : 'この機体は可動ショックコーンを持ちません';
+    }
+    if (coneAuto) coneAuto.disabled = !hasShockCone;
+    if (coneSlider) {
+        // ショックコーンなし機体ではスライダーも無効
+        coneSlider.disabled = !hasShockCone || (coneAuto && coneAuto.checked);
+    }
+}
+
+function bindUI(viewer, config) {
+    // スペック表示
+    updateSpecPanel(config);
+
+    // --- 機体選択ドロップダウン ---
+    const selector = document.getElementById('aircraft-select');
+    if (selector) {
+        selector.value = viewer.currentAircraftId;
+        selector.addEventListener('change', async (e) => {
+            const id = e.target.value;
+            selector.disabled = true;
+            try {
+                const newConfig = await viewer.loadAircraft(id);
+                updateSpecPanel(newConfig);
+                updateShockConeUI(viewer);
+                syncControlsToModel(viewer);
+                updateFooter(viewer);
+            } catch (err) {
+                console.error('[Viewer] 機体切替に失敗:', err);
+            } finally {
+                selector.disabled = false;
+            }
+        });
+    }
 
     // トグル
     const gear = document.getElementById('toggle-gear');
@@ -231,10 +313,11 @@ function bindUI(viewer, config) {
         viewer.model.setAfterburnerLevel(Number(e.target.value) / 100);
     });
 
-    // --- 可動ショックコーン制御 ---
+    // --- 可動ショックコーン制御 (ショックコーンを持つ機体のみ有効) ---
     const coneAuto = document.getElementById('toggle-cone-auto');
     const coneSlider = document.getElementById('slider-cone');
     coneAuto?.addEventListener('change', (e) => {
+        if (!viewer.currentEntry?.hasShockCone) return;
         if (e.target.checked) {
             // 自動往復モード
             viewer.model.setShockCone(null);
@@ -246,12 +329,51 @@ function bindUI(viewer, config) {
         }
     });
     coneSlider?.addEventListener('input', (e) => {
+        if (!viewer.currentEntry?.hasShockCone) return;
         viewer.model.setShockCone(Number(e.target.value) / 100);
     });
+
+    // 初期状態を機体に合わせて整える
+    updateShockConeUI(viewer);
+    updateFooter(viewer);
 
     // パネルを表示
     document.getElementById('hud')?.classList.remove('hidden');
     document.getElementById('control-panel')?.classList.remove('hidden');
+}
+
+/**
+ * 機体切替後、現在の UI コントロール状態を新しいモデルへ反映させる。
+ * (チェックボックス/スライダーの値はそのまま引き継ぐ)
+ */
+function syncControlsToModel(viewer) {
+    const model = viewer.model;
+    if (!model) return;
+    const checked = (id) => !!document.getElementById(id)?.checked;
+    const val = (id) => Number(document.getElementById(id)?.value ?? 0);
+
+    model.setGearVisible(checked('toggle-gear'));
+    model.setHitboxVisible(checked('toggle-hitbox'));
+    model.setWireframe(checked('toggle-wireframe'));
+    viewer.autoRotate = checked('toggle-rotate');
+    model.setAfterburner(checked('toggle-afterburner'));
+    model.setAfterburnerLevel(val('slider-thrust') / 100);
+
+    if (viewer.currentEntry?.hasShockCone) {
+        if (checked('toggle-cone-auto')) {
+            model.setShockCone(null);
+        } else {
+            model.setShockCone(val('slider-cone') / 100);
+        }
+    }
+}
+
+/** フッターのクレジット表記を現在の機体名で更新 */
+function updateFooter(viewer) {
+    const footer = document.getElementById('footer-credit');
+    if (footer && viewer.currentEntry) {
+        footer.textContent = `Three.js Procedural Aircraft Viewer · ${viewer.currentEntry.label}`;
+    }
 }
 
 function hideLoading() {

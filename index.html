@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>War Thunder Style Aircraft Viewer — MiG-21</title>
+    <title>War Thunder Style Aircraft Viewer</title>
     <link rel="stylesheet" href="style.css">
 
     <!--
@@ -47,6 +47,17 @@
 
     <!-- コントロールパネル -->
     <div id="control-panel" class="hidden">
+        <h2>機体選択</h2>
+        <div class="slider-row">
+            <label for="aircraft-select">機体</label>
+            <select id="aircraft-select">
+                <option value="mig21">MiG-21MF</option>
+                <option value="f4phantom">F-4E Phantom II</option>
+            </select>
+        </div>
+
+        <hr class="panel-divider">
+
         <h2>表示オプション</h2>
         <label class="toggle">
             <input type="checkbox" id="toggle-gear" checked>
@@ -76,13 +87,15 @@
             <input type="range" id="slider-thrust" min="0" max="100" value="100">
         </div>
 
-        <label class="toggle">
-            <input type="checkbox" id="toggle-cone-auto" checked>
-            <span>ショックコーン自動可動</span>
-        </label>
-        <div class="slider-row">
-            <label for="slider-cone">コーン突出</label>
-            <input type="range" id="slider-cone" min="0" max="100" value="0" disabled>
+        <div id="cone-control-group">
+            <label class="toggle">
+                <input type="checkbox" id="toggle-cone-auto" checked>
+                <span>ショックコーン自動可動</span>
+            </label>
+            <div class="slider-row">
+                <label for="slider-cone">コーン突出</label>
+                <input type="range" id="slider-cone" min="0" max="100" value="0" disabled>
+            </div>
         </div>
 
         <div class="hint">
@@ -96,6 +109,7 @@
     <footer id="footer-credit">
         Three.js Procedural Aircraft Viewer &middot; MiG-21MF
     </footer>
+    <!-- footer-credit は機体選択に応じて script.js が更新する -->
 
     <!-- メインスクリプト (ES Modules) -->
     <script type="module" src="script.js"></script>
