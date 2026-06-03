@@ -21,9 +21,39 @@ export class Wing extends AircraftPart {
         super(`${side}Wing`, { side, health: 120, ...options });
     }
 
+    /**
+     * addMesh を override し、生成したメッシュを this.group ではなく
+     * 翼専用グループ (this.wingGroup) に追加する。
+     *
+     * 旧実装では翼本体メッシュだけに position/scale/rotation を与え、
+     * フェンス・航法灯・パネルライン等のディテールは this.group 直下へ
+     * 別基準で配置していたため、翼本体とディテールが互いにズレ、
+     * さらに左右 (Z 反転) で食い違う原因になっていた。
+     *
+     * ここでは全パーツを wingGroup にまとめ、グループ全体へ
+     * 取付オフセット / 上反角 / 左右反転を一括適用する。これにより
+     * 各ディテールはローカル座標 (オフセットも反転も無し) で素直に
+     * 記述でき、確実に翼へ追従し左右対称になる。
+     */
+    addMesh(geometry, material, subName = '') {
+        const mesh = super.addMesh(geometry, material, subName);
+        if (this.wingGroup) {
+            // super.addMesh が this.group へ入れた分を取り外し、翼グループへ
+            this.group.remove(mesh);
+            this.wingGroup.add(mesh);
+        }
+        return mesh;
+    }
+
     buildGeometry() {
         const side = this.options.side; // "left" | "right"
         const dir = side === 'right' ? 1 : -1; // +Z = 右
+
+        // 翼本体とすべてのディテールをまとめる専用グループ。
+        // 取付位置 / 上反角 / 左右反転をこのグループへ一括適用する。
+        this.wingGroup = new THREE.Group();
+        this.wingGroup.name = `${this.name}:wingGroup`;
+        this.group.add(this.wingGroup);
 
         // ----------------------------------------------------------
         //  デルタ翼プロファイル (XZ 平面で定義し、後で薄く押し出す)
@@ -69,13 +99,17 @@ export class Wing extends AircraftPart {
         wingGeo.translate(0, 0, 0);
         wingGeo.computeVertexNormals();
 
+        // 翼本体はグループ内ローカルに素直に配置 (オフセット/反転はグループ側)
         const wing = this.addMesh(wingGeo, Materials.body, 'surface');
-        // 左翼は Z を反転
-        wing.scale.set(1, 1, dir);
-        // 付け根を胴体半径ぶん外へ、わずかに下げて中翼配置に
-        wing.position.set(-0.3, -0.15, dir * 0.45);
-        // 上反角 (わずか)
-        wing.rotation.x = dir * THREE.MathUtils.degToRad(-2);
+
+        // --- 翼グループ全体へ取付オフセット / 上反角 / 左右反転を適用 ---
+        // 旧実装で翼本体メッシュに与えていた値をグループへ移譲する。
+        //  scale.z = dir : 右翼(+Z)はそのまま、左翼は Z 反転
+        //  position    : 付け根を僅かに外・下へ (中翼配置)
+        //  rotation.x  : 上反角 (わずか)
+        this.wingGroup.scale.set(1, 1, dir);
+        this.wingGroup.position.set(-0.3, -0.15, 0.45);
+        this.wingGroup.rotation.x = THREE.MathUtils.degToRad(-2);
 
         const tipMidX = (tipFrontX + tipRearX) / 2; // 翼端中央 X
 
@@ -87,48 +121,59 @@ export class Wing extends AircraftPart {
         //    実機 MiG-21 も翼端レールは持たないので可視メッシュは廃止し、
         //    不可視の参照点のみ残す。
         // ----------------------------------------------------------
+        //  ※ 座標はすべて「右翼基準のローカル」で記述する。
+        //    左右反転 (dir) と取付オフセットは wingGroup 側が一括適用する。
         this.hardpoint = new THREE.Object3D();
-        this.hardpoint.position.set(tipMidX, -0.27, dir * (span - 0.1));
-        this.group.add(this.hardpoint);
+        this.hardpoint.position.set(tipMidX, -0.27, span - 0.1);
+        this.wingGroup.add(this.hardpoint);
 
         // ----------------------------------------------------------
         //  エルロン/フラップの分割ライン (見た目のディテール)
         // ----------------------------------------------------------
         const lineGeo = new THREE.BoxGeometry(0.04, 0.14, span * 0.9);
         const line = this.addMesh(lineGeo, Materials.panelLine, 'controlSurfaceLine');
-        line.position.set(trailingRootX + 0.35, -0.1, dir * (span * 0.5 + 0.3));
+        line.position.set(trailingRootX + 0.35, -0.1, span * 0.5 + 0.3);
 
         // ----------------------------------------------------------
         //  境界層フェンス (Boundary-layer fence) — 翼上面の前後方向の薄板。
         //  実機 MiG-21 の象徴的なディテール。各翼に 1 枚。
+        //
+        //  ※旧実装は ExtrudeGeometry + rotation.y の組合せが破綻しており、
+        //    板が翼弦方向ではなくスパン方向へ「寝た巨大な壁」として
+        //    翼から大きくはみ出していた (左右で見た目も食い違う)。
+        //    ここでは XZ 平面 (翼上面) に対し:
+        //      X = 翼弦(前後)方向に細長く
+        //      Y = 上方へ低く立ち上がる (フェンス高さ)
+        //      Z = ごく薄い板厚
+        //    となる素直な Box ベースの薄板へ作り直し、確実に翼上面へ
+        //    垂直に立てる。左右反転は wingGroup 側に委ねる。
         // ----------------------------------------------------------
-        const fenceShape = new THREE.Shape();
-        fenceShape.moveTo(1.4, 0);
-        fenceShape.lineTo(-1.8, 0);
-        fenceShape.lineTo(-1.8, 0.12);
-        fenceShape.lineTo(1.4, 0.16);
-        fenceShape.closePath();
-        const fenceGeo = new THREE.ExtrudeGeometry(fenceShape, {
-            depth: 0.02, bevelEnabled: false,
-        });
-        // XY 平面の板を XZ(翼上面)に立てる: Z 方向(スパン)の位置に薄く立てる
+        const fenceChord = 1.5;   // 翼弦方向の長さ (前後)
+        const fenceHeight = 0.15; // 上方への立ち上がり高さ (低い)
+        const fenceThick = 0.02;  // 板厚
+        const fenceGeo = new THREE.BoxGeometry(fenceChord, fenceHeight, fenceThick);
         const fence = this.addMesh(fenceGeo, Materials.bodyDark, 'boundaryFence');
-        fence.position.set(-0.4, 0.0, dir * (span * 0.62));
-        fence.rotation.y = -Math.PI / 2; // 板面を前後方向に向ける
+        // 翼上面 (翼厚 0.12 → 上面 ≒ Y+0.06) のすぐ上に、翼弦中央付近・
+        // 中間スパン付近へ立てる。板面は前後(X)方向を向いており回転不要。
+        const fenceX = -0.2;                      // 翼弦中央やや後ろ
+        const fenceY = 0.06 + fenceHeight / 2;    // 翼上面 + 高さの半分
+        const fenceZ = span * 0.55;               // 中間スパン (右翼基準)
+        fence.position.set(fenceX, fenceY, fenceZ);
 
         // ----------------------------------------------------------
         //  翼端航法灯 (右=緑 / 左=赤) — クリップした翼端前縁に埋め込む。
+        //  色は左右で異なるため dir で出し分ける (座標は右翼基準)。
         // ----------------------------------------------------------
         const navGeo = new THREE.SphereGeometry(0.06, 10, 8);
         const navMat = dir === 1 ? Materials.navLightGreen : Materials.navLightRed;
         const nav = this.addMesh(navGeo, navMat, 'navLight');
-        nav.position.set(tipFrontX, -0.05, dir * (span - 0.02));
+        nav.position.set(tipFrontX + 0.05, 0.0, span - 0.05);
 
         // ----------------------------------------------------------
         //  翼上面のパネルライン (スパン方向 + 翼弦方向の簡易スジ彫り)
         // ----------------------------------------------------------
         const spanLineGeo = new THREE.BoxGeometry(0.02, 0.13, span * 0.85);
         const spanLine = this.addMesh(spanLineGeo, Materials.panelLine, 'wingPanelSpan');
-        spanLine.position.set(0.2, -0.06, dir * (span * 0.5));
+        spanLine.position.set(0.2, -0.06, span * 0.5);
     }
 }
