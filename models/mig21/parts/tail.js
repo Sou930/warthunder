@@ -22,11 +22,14 @@ export class Tail extends AircraftPart {
         //  垂直尾翼 (Vertical Stabilizer)
         //  XY 平面の後退翼シェイプを Z 方向へ薄く押し出す。
         // ----------------------------------------------------------
+        // 修正: 高さを約15%増加 (2.1 → 2.42) し、上端をさらに後方へ
+        //       オフセットして前縁後退角を強調した形状へ。
+        const finTop = 2.42;        // 高さ (旧 2.1 × 1.15)
         const vShape = new THREE.Shape();
-        vShape.moveTo(-3.8, 0);     // 付け根後端
-        vShape.lineTo(-1.4, 0);     // 付け根前端
-        vShape.lineTo(-2.6, 2.1);   // 上端前 (後退角)
-        vShape.lineTo(-3.6, 2.1);   // 上端後
+        vShape.moveTo(-3.8, 0);        // 付け根後端
+        vShape.lineTo(-1.4, 0);        // 付け根前端
+        vShape.lineTo(-3.05, finTop);  // 上端前 (後退角を強調し後方へ)
+        vShape.lineTo(-3.85, finTop);  // 上端後
         vShape.closePath();
 
         const vGeo = new THREE.ExtrudeGeometry(vShape, {
@@ -44,26 +47,27 @@ export class Tail extends AircraftPart {
         // ラダー分割ライン
         //  ※ 垂直尾翼はワールドで X≈-3.4〜-5.8 に位置するため、ディテールも
         //    その範囲内に配置する (旧値は前方すぎて宙に浮いていた)。
-        const rudderLineGeo = new THREE.BoxGeometry(0.05, 1.7, 0.16);
+        const rudderLineGeo = new THREE.BoxGeometry(0.05, 1.95, 0.16);
         const rudderLine = this.addMesh(rudderLineGeo, Materials.panelLine, 'rudderLine');
-        rudderLine.position.set(-5.45, 1.55, 0); // 後縁(ラダー)寄り
+        rudderLine.position.set(-5.55, 1.7, 0); // 後縁(ラダー)寄り
 
         // ----------------------------------------------------------
         //  垂直尾翼上端の航法灯 (白) + 頂部の RWR/ESM フェアリング
         // ----------------------------------------------------------
+        //  ※垂直尾翼を +0.6 だけ持ち上げて配置しているため、頂部座標は finTop+0.6。
         const finTipGeo = new THREE.SphereGeometry(0.07, 10, 8);
         const finTip = this.addMesh(finTipGeo, Materials.navLightWhite, 'finTopLight');
-        finTip.position.set(-5.45, 2.66, 0); // 頂部後端の角に埋め込む
+        finTip.position.set(-5.7, 2.98, 0); // 頂部後端の角に埋め込む
 
-        // 頂部 ESM/RWR フェアリング — 翼頂稜線 (X≈-4.6〜-5.6, Y≈2.7) に沿わせる
+        // 頂部 ESM/RWR フェアリング — 翼頂稜線に沿わせる
         const esmGeo = new THREE.BoxGeometry(0.45, 0.16, 0.15);
         const esm = this.addMesh(esmGeo, Materials.dielectric, 'finEsmFairing');
-        esm.position.set(-5.06, 2.6, 0);
+        esm.position.set(-5.3, 2.92, 0);
 
         // 垂直尾翼のパネルライン (前縁付近のスジ彫り)
-        const finPanelGeo = new THREE.BoxGeometry(0.04, 1.5, 0.18);
+        const finPanelGeo = new THREE.BoxGeometry(0.04, 1.7, 0.18);
         const finPanel = this.addMesh(finPanelGeo, Materials.panelLine, 'finPanelLine');
-        finPanel.position.set(-4.0, 1.4, 0); // 前縁寄り (翼内に収める)
+        finPanel.position.set(-4.1, 1.55, 0); // 前縁寄り (翼内に収める)
 
         // ----------------------------------------------------------
         //  ブレーキパラシュート格納筒 — テールコーン基部の円筒フェアリング。

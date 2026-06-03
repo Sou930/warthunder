@@ -22,8 +22,8 @@
         {
             "part": "cockpit",
             "label": "Cockpit / Pilot",
-            "position": [3.3, 0.85, 0.0],
-            "size": [2.0, 1.0, 1.0]
+            "position": [3.25, 0.85, 0.0],
+            "size": [2.6, 1.0, 1.0]
         },
         {
             "part": "leftWing",

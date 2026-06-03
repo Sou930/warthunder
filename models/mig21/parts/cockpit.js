@@ -21,36 +21,86 @@ export class Cockpit extends AircraftPart {
         const baseX = 3.3;
         const baseY = 0.78;
 
+        // ==========================================================
+        //  キャノピーを前後方向へ延長し、前面ガラス(風防)と
+        //  フレーム構造を追加する。
+        //  構成:
+        //    1) 前面ガラス (Windscreen) — 機首寄りの傾斜した固定風防
+        //    2) 後方バブルキャノピー — パイロットを覆う可動風防
+        //    3) フレーム構造 — 前枠 / 風防後縁アーチ / 中央桁 / 縦通材 / 後縁
+        // ==========================================================
+
+        // 前後延長量: 旧キャノピーより前後それぞれ広げる
+        const canopyFrontX = baseX + 1.15;  // 風防前端
+        const canopyRearX = baseX - 1.25;   // バブル後端
+
         // ----------------------------------------------------------
-        //  キャノピー本体 (半透明ドーム)
-        //  半球を前後に伸ばし、流線型のバブルキャノピーに。
+        //  1) 前面ガラス (Windscreen) — 前方へ傾斜した固定風防
+        //     球の前方部分を切り出し、前傾させて取り付ける。
+        // ----------------------------------------------------------
+        const wsGeo = new THREE.SphereGeometry(
+            0.55, 24, 14,
+            0, Math.PI * 2,
+            0, Math.PI * 0.55
+        );
+        const windscreen = this.addMesh(wsGeo, Materials.canopy, 'windscreen');
+        windscreen.scale.set(1.15, 1.15, 0.92); // 前方へ伸ばした傾斜風防
+        windscreen.rotation.z = THREE.MathUtils.degToRad(-32); // 前傾
+        windscreen.position.set(baseX + 0.72, baseY + 0.02, 0);
+
+        // ----------------------------------------------------------
+        //  2) 後方バブルキャノピー (半透明ドーム) — 前後に長く延長
         // ----------------------------------------------------------
         const canopyGeo = new THREE.SphereGeometry(0.55, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2);
         const canopy = this.addMesh(canopyGeo, Materials.canopy, 'glass');
-        // 背を少し高くしてパイロットのヘルメットが収まる高さに (旧: scale.y=1.0 で頭がはみ出していた)
-        canopy.scale.set(1.9, 1.2, 0.98);  // 前後に長く・やや背の高いバブル形状
-        canopy.position.set(baseX, baseY, 0);
+        // 前後にさらに長く延長 (旧 1.9 → 2.25)、やや背の高いバブル形状
+        canopy.scale.set(2.25, 1.22, 1.0);
+        canopy.position.set(baseX - 0.15, baseY, 0);
 
         // ----------------------------------------------------------
-        //  風防フレーム (前枠) — 前面の補強フレーム
+        //  3) フレーム構造
         // ----------------------------------------------------------
-        const frontFrameGeo = new THREE.TorusGeometry(0.5, 0.04, 6, 16, Math.PI);
-        frontFrameGeo.rotateY(Math.PI / 2);
-        const frontFrame = this.addMesh(frontFrameGeo, Materials.frame, 'frontFrame');
-        frontFrame.scale.set(1.0, 1.0, 0.95);
-        frontFrame.position.set(baseX + 0.9, baseY, 0);
+        // 前面ガラス前縁フレーム (風防最前部の太い枠)
+        const wsFrontGeo = new THREE.TorusGeometry(0.5, 0.05, 6, 18, Math.PI);
+        wsFrontGeo.rotateY(Math.PI / 2);
+        const wsFront = this.addMesh(wsFrontGeo, Materials.frame, 'windscreenFrontFrame');
+        wsFront.scale.set(1.0, 0.9, 0.92);
+        wsFront.rotation.x = THREE.MathUtils.degToRad(20);
+        wsFront.position.set(canopyFrontX, baseY - 0.02, 0);
+
+        // 風防後縁アーチ (前面ガラスと後方バブルの境界フレーム)
+        const archGeo = new THREE.TorusGeometry(0.54, 0.045, 6, 18, Math.PI);
+        archGeo.rotateY(Math.PI / 2);
+        const arch = this.addMesh(archGeo, Materials.frame, 'windscreenArch');
+        arch.scale.set(1.0, 1.05, 0.96);
+        arch.position.set(baseX + 0.35, baseY, 0);
 
         // 中央フレーム (キャノピー中央の桁)
-        const midFrameGeo = new THREE.TorusGeometry(0.52, 0.035, 6, 16, Math.PI);
+        const midFrameGeo = new THREE.TorusGeometry(0.55, 0.035, 6, 18, Math.PI);
         midFrameGeo.rotateY(Math.PI / 2);
         const midFrame = this.addMesh(midFrameGeo, Materials.frame, 'midFrame');
-        midFrame.scale.set(1.0, 1.0, 0.95);
-        midFrame.position.set(baseX - 0.2, baseY, 0);
+        midFrame.scale.set(1.0, 1.05, 0.96);
+        midFrame.position.set(baseX - 0.4, baseY, 0);
+
+        // 後縁フレーム (バブル後端の枠)
+        const rearFrameGeo = new THREE.TorusGeometry(0.5, 0.04, 6, 18, Math.PI);
+        rearFrameGeo.rotateY(Math.PI / 2);
+        const rearFrame = this.addMesh(rearFrameGeo, Materials.frame, 'rearFrame');
+        rearFrame.scale.set(1.0, 0.95, 0.92);
+        rearFrame.rotation.x = THREE.MathUtils.degToRad(-12);
+        rearFrame.position.set(canopyRearX, baseY - 0.04, 0);
+
+        // 左右の縦通材 (キャノピーレール) — 前後を結ぶ細い桁
+        for (const dir of [1, -1]) {
+            const railGeo = new THREE.BoxGeometry(canopyFrontX - canopyRearX, 0.04, 0.05);
+            const rail = this.addMesh(railGeo, Materials.frame, dir === 1 ? 'canopyRailR' : 'canopyRailL');
+            rail.position.set((canopyFrontX + canopyRearX) / 2, baseY - 0.18, dir * 0.5);
+        }
 
         // ----------------------------------------------------------
-        //  コックピット床 (ガラス越しに見える暗い底)
+        //  コックピット床 (ガラス越しに見える暗い底) — 延長に合わせて拡大
         // ----------------------------------------------------------
-        const tubGeo = new THREE.BoxGeometry(1.9, 0.3, 0.85);
+        const tubGeo = new THREE.BoxGeometry(2.3, 0.3, 0.85);
         const tub = this.addMesh(tubGeo, Materials.frame, 'tub');
         tub.position.set(baseX, baseY - 0.05, 0);
 
