@@ -135,6 +135,15 @@ export class Engine extends AircraftPart {
         this.group.add(this.plumeGroup);
 
         // ----------------------------------------------------------
+        //  大型ベントラルフィン (腹びれ) — エンジン下部の安定板
+        //  実機 MiG-21 は胴体後部下面 (エンジン直下) に大型の固定
+        //  腹びれを持ち、高速時のヨー安定を確保する。
+        //  尾翼側の小型腹びれ (tail.js) とは別の大型主フィンとして
+        //  エンジンノズル前方下面に配置する。
+        // ----------------------------------------------------------
+        this._buildVentralFin(tailX);
+
+        // ----------------------------------------------------------
         //  発光ポイントライト — アフターバーナーがシーン (機体後部) を照らす
         // ----------------------------------------------------------
         this.abLight = new THREE.PointLight(0xff5a1e, 6.0, 8.0, 2.0);
@@ -144,6 +153,53 @@ export class Engine extends AircraftPart {
 
         // 初期状態を反映
         this._applyAfterburnerVisual(this.afterburnerOn ? 1 : 0);
+    }
+
+    /**
+     * 大型ベントラルフィン (腹びれ) をエンジン下部に構築する。
+     * 胴体後部下面〜エンジンノズル直下にかけて下方へ大きく張り出す
+     * 固定式の安定板。前縁を強く後退させた実機準拠の台形シェイプ。
+     * @param {number} tailX ノズル開口位置 (X)
+     */
+    _buildVentralFin(tailX) {
+        // XY 平面でフィン断面 (側面形状) を定義する。
+        //  X = 前後 (前方 +X), Y = 上下 (下方 -Y へ張り出す)
+        //  ベース (Y=0) は胴体下面、下端 (Y=-finDepth) が地面寄り。
+        const finDepth = 1.15;      // 下方への張り出し量 (大型)
+        const rootFrontX = 0.9;     // 付け根前縁 (エンジン前方寄り)
+        const rootRearX = -1.7;     // 付け根後縁
+        const tipFrontX = -0.2;     // 下端前縁 (前縁後退角)
+        const tipRearX = -1.5;      // 下端後縁
+
+        const shape = new THREE.Shape();
+        shape.moveTo(rootFrontX, 0);          // 付け根前縁
+        shape.lineTo(rootRearX, 0);           // 付け根後縁
+        shape.lineTo(tipRearX, -finDepth);    // 下端後縁
+        shape.lineTo(tipFrontX, -finDepth);   // 下端前縁 (後退角)
+        shape.closePath();
+
+        const finGeo = new THREE.ExtrudeGeometry(shape, {
+            depth: 0.12,
+            bevelEnabled: true,
+            bevelThickness: 0.03,
+            bevelSize: 0.04,
+            bevelSegments: 2,
+        });
+        finGeo.translate(0, 0, -0.06); // Z 中心揃え
+        finGeo.computeVertexNormals();
+        const ventral = this.addMesh(finGeo, Materials.bodyDark, 'ventralFinLarge');
+        // エンジンノズル前方の胴体下面に取り付け
+        ventral.position.set(tailX + 1.9, -0.7, 0);
+
+        // 下端の補強キャップ / RAT (ラム空気タービン) 風フェアリング
+        const capGeo = new THREE.BoxGeometry(0.9, 0.1, 0.16);
+        const cap = this.addMesh(capGeo, Materials.bareMetal, 'ventralFinCap');
+        cap.position.set(tailX + 1.4, -1.83, 0);
+
+        // フィン側面のパネルライン (スジ彫り)
+        const fpGeo = new THREE.BoxGeometry(0.04, 0.95, 0.16);
+        const fp = this.addMesh(fpGeo, Materials.panelLine, 'ventralFinPanel');
+        fp.position.set(tailX + 1.7, -1.25, 0);
     }
 
     // ============================================================
