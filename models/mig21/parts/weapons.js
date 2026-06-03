@@ -133,26 +133,43 @@ export class Weapons extends AircraftPart {
     }
 
     buildGeometry() {
-        // 翼の上反/位置に概ね合わせたパイロン基準位置 (wing.js 参照)。
-        //  内側パイロン: z = ±1.7、外側パイロン: z = ±2.7 付近
-        const innerZ = 1.7;
-        const outerZ = 2.7;
+        // ----------------------------------------------------------
+        //  ハードポイント定義 — 実機 MiG-21MF (5 ハードポイント構成)
+        //   ・内翼 ×2 : 翼根寄りの主パイロン (大型 IR ミサイル/増槽対応)
+        //   ・外翼 ×2 : 外側の補助パイロン (短射程 IR ミサイル)
+        //   ・胴体中央 ×1 : 中心線パイロン (増槽 / 爆弾)
+        //  wing.js のデルタ翼スパン (span=3.3) を基準に、内翼を翼根寄り、
+        //  外翼を中間スパン付近へ配置する。座標は WeaponSystem からも参照。
+        // ----------------------------------------------------------
+        const innerZ = 1.45;      // 内翼パイロン (翼根寄り)
+        const outerZ = 2.45;      // 外翼パイロン (中間スパン)
         const pylonY = -0.35;     // 翼下面あたり
-        const missileY = -0.62;   // ミサイル中心高さ
+        const missileY = -0.66;   // ミサイル中心高さ
+
+        // ハードポイント座標を公開 (将来の WeaponSystem 用)
+        this.hardpoints = {
+            innerRight:  { x: -0.2, y: missileY, z:  innerZ },
+            innerLeft:   { x: -0.2, y: missileY, z: -innerZ },
+            outerRight:  { x: -0.1, y: missileY, z:  outerZ },
+            outerLeft:   { x: -0.1, y: missileY, z: -outerZ },
+            centerline:  { x: -0.4, y: -1.05,    z:  0 },
+        };
 
         for (const dir of [1, -1]) {
-            // --- 内側: R-3S "Atoll" (やや大きい IR ミサイル) ---
+            // --- 内翼: R-3S "Atoll" (やや大きい IR ミサイル) ---
             this._makePylon({
-                x: -0.2, y: pylonY, z: dir * innerZ, name: `pylonInner_${dir}`, depth: 0.8,
+                x: -0.2, y: pylonY, z: dir * innerZ,
+                name: `pylonInner_${dir}`, depth: 0.85, height: 0.38,
             });
             const atoll = this._makeMissile({
                 length: 2.8, radius: 0.075, name: `r3s_${dir}`, finSpan: 2.4,
             });
             atoll.position.set(0.0, missileY, dir * innerZ);
 
-            // --- 外側: R-60 "Aphid" (小型 IR ミサイル) ---
+            // --- 外翼: R-60 "Aphid" (小型 IR ミサイル) ---
             this._makePylon({
-                x: -0.1, y: pylonY, z: dir * outerZ, name: `pylonOuter_${dir}`, depth: 0.6,
+                x: -0.1, y: pylonY, z: dir * outerZ,
+                name: `pylonOuter_${dir}`, depth: 0.62, height: 0.3,
             });
             const aphid = this._makeMissile({
                 length: 2.1, radius: 0.055, name: `r60_${dir}`, finSpan: 2.6,
@@ -160,7 +177,11 @@ export class Weapons extends AircraftPart {
             aphid.position.set(0.1, missileY, dir * outerZ);
         }
 
-        // --- 機体中心線下の増槽 ---
+        // --- 胴体中央 (中心線) ハードポイント: 専用パイロン + 増槽 ---
+        this._makePylon({
+            x: -0.4, y: -0.78, z: 0,
+            name: 'pylonCenterline', depth: 0.9, height: 0.32,
+        });
         this._makeFuelTank();
     }
 }

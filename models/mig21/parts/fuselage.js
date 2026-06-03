@@ -100,9 +100,34 @@ export class Fuselage extends AircraftPart {
         coneGroup.add(cone);
         coneGroup.add(coneBase);
 
+        // ----------------------------------------------------------
+        //  ショックコーン支持構造 — インテークリップとコーン基部を
+        //  結ぶ放射状の支持ストラット (実機のセンターボディ支持)。
+        //  コーンと共にスライドするようグループ内に取り込む。
+        // ----------------------------------------------------------
+        const strutCount = 3;
+        for (let i = 0; i < strutCount; i++) {
+            const a = (i / strutCount) * Math.PI * 2 + Math.PI / 2;
+            const strutGeo = new THREE.BoxGeometry(0.5, 0.04, 0.05);
+            const strut = new THREE.Mesh(strutGeo, Materials.bodyDark);
+            strut.name = `fuselage:coneSupportStrut${i}`;
+            strut.userData.part = this;
+            this.meshes.push(strut);
+            // コーン基部 (X≈0) から外側リップへ向けて配置
+            const rr = 0.52;
+            strut.position.set(0.05, Math.sin(a) * rr, Math.cos(a) * rr);
+            strut.rotation.x = -a;
+            coneGroup.add(strut);
+        }
+
         // グループ基準位置 (コーン基部がインテーク内に来る位置)
         coneGroup.position.set(5.5, 0, 0);
         this.group.add(coneGroup);
+
+        // ----------------------------------------------------------
+        //  インテーク周辺のセンサー / プローブ / 支持ディテール (固定側)
+        // ----------------------------------------------------------
+        this._buildIntakeDetails();
 
         // 可動制御用に保持
         this.shockCone = coneGroup;
@@ -136,10 +161,60 @@ export class Fuselage extends AircraftPart {
         this._buildUnderside();      // 下面の明色塗り分け
         this._buildIntakeLipMetal(); // インテーク前縁の磨き金属リング
         this._buildPanelLines();     // 胴体パネルライン (スジ彫り)
+        this._buildAccessPanels();   // 整備ハッチ/エンジンアクセス/給油口
         this._buildPitotAndProbes(); // ピトー管 / アンテナ / ピトーブーム
         this._buildDorsalDetails();  // 背部アンテナ / ブレードアンテナ
         this._buildNationalMarkings(); // 機首側面の赤星マーキング
         this._buildAirbrakes();      // 胴体下面エアブレーキ板
+    }
+
+    /**
+     * 機首整備ハッチ / エンジンアクセスパネル / 燃料給油口などの
+     * 矩形パネルラインを追加する。実機の各種アクセスパネルを
+     * 浅い枠 (薄い箱) で表現し、表面にスジ彫りとして浮かせる。
+     */
+    _buildAccessPanels() {
+        // 矩形パネル枠を 1 枚生成するヘルパー。
+        //  胴体半径方向 (radius) の外側へ僅かに浮かせ、指定角度に巻き付ける。
+        //  ang: 胴体周方向角 (0=上, +で右回り), len: 前後長, wid: 周方向幅
+        const makePanel = (x, ang, len, wid, radius, name, mat = Materials.panelLine) => {
+            const frameGeo = new THREE.BoxGeometry(len, 0.012, wid);
+            const frame = this.addMesh(frameGeo, mat, name);
+            const r = radius + 0.01;
+            frame.position.set(
+                x,
+                Math.cos(ang) * r,
+                Math.sin(ang) * r
+            );
+            // パネル面を胴体表面の接線方向に向ける
+            frame.rotation.x = -ang;
+            frame.renderOrder = 2;
+            return frame;
+        };
+
+        // --- 機首整備ハッチ (機首上面、コックピット前方) ---
+        makePanel(4.7, 0.0, 0.9, 0.7, 0.74, 'noseAccessHatch');
+        makePanel(4.0, THREE.MathUtils.degToRad(35), 0.7, 0.5, 0.78, 'noseSideHatchR');
+        makePanel(4.0, THREE.MathUtils.degToRad(-35), 0.7, 0.5, 0.78, 'noseSideHatchL');
+
+        // --- 燃料給油口 (背部スパイン付近、主翼後方上面) ---
+        const fuelCap = makePanel(-1.2, 0.0, 0.34, 0.34, 0.93, 'fuelFillerCap', Materials.bareMetal);
+        fuelCap.scale.set(1, 1, 1);
+        // 給油口の丸縁 (小トーラス)
+        const ringGeo = new THREE.TorusGeometry(0.16, 0.015, 6, 18);
+        ringGeo.rotateX(Math.PI / 2);
+        const ring = this.addMesh(ringGeo, Materials.bodyDark, 'fuelFillerRing');
+        ring.position.set(-1.2, 0.95, 0);
+
+        // --- エンジンアクセスパネル (胴体後部側面、エンジン部上方) ---
+        for (const dir of [1, -1]) {
+            const ang = dir * THREE.MathUtils.degToRad(50);
+            makePanel(-3.0, ang, 1.4, 0.6, 0.82, `engineAccessPanel${dir}`);
+            makePanel(-4.2, ang, 1.0, 0.55, 0.66, `engineAccessPanelRear${dir}`);
+        }
+
+        // --- エンジン上面の脱着パネル (背部、テール寄り) ---
+        makePanel(-3.6, 0.0, 1.6, 0.5, 0.7, 'engineTopPanel');
     }
 
     /**
@@ -189,17 +264,40 @@ export class Fuselage extends AircraftPart {
      * 実機 MiG-21 はショックコーン前方に長いピトーブームを持つ。
      */
     _buildPitotAndProbes() {
-        // 機首ピトーブーム (ショックコーン先端から前方へ長く突き出る)
+        // ----------------------------------------------------------
+        //  ピトー管基部フェアリング — ショックコーン先端に被さる太い基部。
+        //  実機 MiG-21 はブーム取付部に段付きの太いマウントを持つ。
+        //  細いブームへ向かって段階的に絞り込む多段円筒で表現する。
+        // ----------------------------------------------------------
+        const baseGeo = new THREE.CylinderGeometry(0.14, 0.2, 0.5, 14);
+        baseGeo.rotateZ(-Math.PI / 2);
+        const base = this.addMesh(baseGeo, Materials.bodyDark, 'pitotBase');
+        base.position.set(6.05, 0.0, 0);
+
+        // 基部の中段 (段付き) — 太→細へのテーパー
+        const midBaseGeo = new THREE.CylinderGeometry(0.07, 0.14, 0.45, 12);
+        midBaseGeo.rotateZ(-Math.PI / 2);
+        const midBase = this.addMesh(midBaseGeo, Materials.bareMetal, 'pitotBaseStep');
+        midBase.position.set(6.45, 0.0, 0);
+
+        // 機首ピトーブーム (太い基部から前方へ長く突き出る)
         const boomGeo = new THREE.CylinderGeometry(0.028, 0.018, 1.6, 10);
         boomGeo.rotateZ(-Math.PI / 2);
         const boom = this.addMesh(boomGeo, Materials.bareMetal, 'pitotBoom');
-        boom.position.set(6.9, 0.0, 0);
+        boom.position.set(7.4, 0.0, 0);
 
         // ブーム先端の細いプローブ
         const tipGeo = new THREE.CylinderGeometry(0.012, 0.006, 0.5, 8);
         tipGeo.rotateZ(-Math.PI / 2);
         const tip = this.addMesh(tipGeo, Materials.strut, 'pitotTip');
-        tip.position.set(7.9, 0.0, 0);
+        tip.position.set(8.4, 0.0, 0);
+
+        // ブーム上の小ヨーベーン (横向きの風見板) — ピトーブーム特有の付属物
+        for (const dir of [1, -1]) {
+            const yawVaneGeo = new THREE.BoxGeometry(0.16, 0.02, 0.06);
+            const yawVane = this.addMesh(yawVaneGeo, Materials.strut, `pitotYawVane${dir}`);
+            yawVane.position.set(7.0, dir * 0.09, 0);
+        }
 
         // 迎角(AoA)ベーン — 機首側面の小さな風見
         for (const dir of [1, -1]) {
@@ -207,6 +305,35 @@ export class Fuselage extends AircraftPart {
             const vane = this.addMesh(vaneGeo, Materials.bodyDark, `aoaVane${dir}`);
             vane.position.set(5.5, 0.1, dir * 0.5);
         }
+
+        // ----------------------------------------------------------
+        //  機首各種アンテナ類
+        // ----------------------------------------------------------
+        // 機首下面の IFF / Odd Rods 風ブレードアンテナ (前後 2 枚)
+        for (const ax of [4.7, 3.9]) {
+            const bShape = new THREE.Shape();
+            bShape.moveTo(0, 0);
+            bShape.lineTo(0.3, 0);
+            bShape.lineTo(0.22, -0.28);
+            bShape.closePath();
+            const bGeo = new THREE.ExtrudeGeometry(bShape, { depth: 0.025, bevelEnabled: false });
+            bGeo.translate(0, 0, -0.0125);
+            const blade = this.addMesh(bGeo, Materials.dielectric, `noseBladeAnt${ax}`);
+            blade.position.set(ax, -0.78, 0);
+        }
+
+        // 機首側面の小型 RWR / マーカービーコンアンテナ (左右の小フェアリング)
+        for (const dir of [1, -1]) {
+            const rwrGeo = new THREE.BoxGeometry(0.18, 0.1, 0.06);
+            const rwr = this.addMesh(rwrGeo, Materials.dielectric, `noseRwr${dir}`);
+            rwr.position.set(4.2, 0.35, dir * 0.62);
+        }
+
+        // 機首上面の短いホイップアンテナ (HF/VHF 通信)
+        const noseWhipGeo = new THREE.CylinderGeometry(0.01, 0.012, 0.28, 6);
+        const noseWhip = this.addMesh(noseWhipGeo, Materials.strut, 'noseWhipAntenna');
+        noseWhip.position.set(4.3, 0.78, 0);
+        noseWhip.rotation.z = THREE.MathUtils.degToRad(-10);
     }
 
     /** 背部のブレードアンテナ / IFF アンテナ (背びれ上の突起) */
@@ -306,6 +433,49 @@ export class Fuselage extends AircraftPart {
         const brakeGeo = new THREE.BoxGeometry(1.1, 0.05, 0.7);
         const brake = this.addMesh(brakeGeo, Materials.bodyDark, 'ventralAirbrake');
         brake.position.set(-0.6, -0.84, 0);
+    }
+
+    /**
+     * 機首インテーク周辺のショックコーン支持構造・センサー・プローブ群。
+     * 実機 MiG-21 に近づけるため、インテークリップ周りの固定ディテールを
+     * 追加する (可動コーン側の支持ストラットは buildGeometry 内に同梱)。
+     */
+    _buildIntakeDetails() {
+        // --- インテークリップ内側のバイパススリット / 補助インテーク口 ---
+        //  リップ後方の胴体側面に小さなスリット (境界層排出口) を左右へ。
+        for (const dir of [1, -1]) {
+            const slitGeo = new THREE.BoxGeometry(0.5, 0.06, 0.1);
+            const slit = this.addMesh(slitGeo, Materials.intake, `intakeBypassSlit${dir}`);
+            slit.position.set(4.9, 0.18, dir * 0.62);
+            slit.rotation.x = dir * THREE.MathUtils.degToRad(20);
+        }
+
+        // --- リップ上部の温度/気流センサープローブ (短い L 字プローブ) ---
+        const probeGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.22, 6);
+        probeGeo.rotateZ(-Math.PI / 2);
+        const probe = this.addMesh(probeGeo, Materials.strut, 'intakeAirDataProbe');
+        probe.position.set(6.05, 0.5, 0);
+        probe.rotation.z = THREE.MathUtils.degToRad(35);
+
+        // --- リップ下部の着陸灯フェアリング (小さな埋め込みライト) ---
+        const landLightGeo = new THREE.SphereGeometry(0.07, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+        landLightGeo.rotateX(Math.PI);
+        const landLight = this.addMesh(landLightGeo, Materials.navLightWhite, 'intakeLandingLight');
+        landLight.position.set(5.6, -0.62, 0);
+
+        // --- インテークリップ周方向の小ボルト列 (リベットリング) ---
+        const boltRing = new THREE.TorusGeometry(0.69, 0.012, 6, 28);
+        boltRing.rotateY(Math.PI / 2);
+        const bolts = this.addMesh(boltRing, Materials.bodyDark, 'intakeBoltRing');
+        bolts.position.set(5.82, 0, 0);
+
+        // --- 機首側面の小型 AoA / ヨートランスデューサ (左右) ---
+        for (const dir of [1, -1]) {
+            const tGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.14, 8);
+            const t = this.addMesh(tGeo, Materials.strut, `intakeSideProbe${dir}`);
+            t.position.set(5.2, -0.1, dir * 0.6);
+            t.rotation.x = dir * Math.PI / 2;
+        }
     }
 
     // ============================================================
