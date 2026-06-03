@@ -26,21 +26,25 @@ export class Fuselage extends AircraftPart {
         // ----------------------------------------------------------
         // points: (along, radius) — along は 0(機尾) → length(機首)
         const length = 12.0;       // 胴体長 (見た目スケール)
+        // 修正点:
+        //  - 機首インテーク径を約18%拡大 (0.56→0.66 等)
+        //  - 胴体後部を実機に近い強いテーパー形状へ (後端を細く絞り込み)
         const profile = [
             // [x(前後位置), r(半径)]   ※ x: 後端=-6 〜 前端=+6
-            [-6.0, 0.05],  // テールコーン端
-            [-5.6, 0.42],
-            [-5.0, 0.62],
-            [-4.0, 0.78],
-            [-2.5, 0.86],
+            [-6.0, 0.04],  // テールコーン端 (より細く絞り込み)
+            [-5.6, 0.30],  // 後部テーパー強調
+            [-5.0, 0.48],
+            [-4.2, 0.64],
+            [-3.2, 0.78],
+            [-2.0, 0.86],
             [-1.0, 0.90],  // 最大径 (主翼付け根あたり)
             [ 0.5, 0.88],
             [ 2.0, 0.82],
-            [ 3.5, 0.74],
-            [ 4.6, 0.66],
-            [ 5.2, 0.60],  // インテークリップ手前
-            [ 5.6, 0.58],
-            [ 5.9, 0.56],  // インテークリップ
+            [ 3.5, 0.75],
+            [ 4.6, 0.69],  // インテーク手前 (径拡大)
+            [ 5.2, 0.68],  // インテークリップ手前
+            [ 5.6, 0.67],
+            [ 5.9, 0.66],  // インテークリップ (約18%拡大)
         ];
 
         // セグメント数は外周分割。32 で十分滑らかに見え、頂点数を約 1/3 削減。
@@ -54,7 +58,7 @@ export class Fuselage extends AircraftPart {
         // ----------------------------------------------------------
         //  インテークリップ (機首先端の円環) — 円形インテークを強調
         // ----------------------------------------------------------
-        const lipGeo = new THREE.TorusGeometry(0.56, 0.07, 10, 32);
+        const lipGeo = new THREE.TorusGeometry(0.66, 0.08, 10, 32);
         lipGeo.rotateY(Math.PI / 2);
         const lip = this.addMesh(lipGeo, Materials.bodyDark, 'intakeLip');
         lip.position.set(5.9, 0, 0);
@@ -62,7 +66,7 @@ export class Fuselage extends AircraftPart {
         // ----------------------------------------------------------
         //  インテーク内壁 (黒い円筒) — 奥に伸びるダクト
         // ----------------------------------------------------------
-        const ductGeo = new THREE.CylinderGeometry(0.5, 0.45, 1.6, 24, 1, true);
+        const ductGeo = new THREE.CylinderGeometry(0.59, 0.53, 1.6, 24, 1, true);
         ductGeo.rotateZ(-Math.PI / 2);
         const duct = this.addMesh(ductGeo, Materials.intake, 'intakeDuct');
         duct.position.set(5.2, 0, 0);
@@ -78,14 +82,14 @@ export class Fuselage extends AircraftPart {
         const coneGroup = new THREE.Group();
         coneGroup.name = 'shockConeAssembly';
 
-        // 円錐本体 (背面は見えないので底面なし: openEnded で削減)
-        const coneGeo = new THREE.ConeGeometry(0.34, 1.3, 28, 1, true);
+        // 円錐本体 — より短く太い形状へ修正 (径拡大 0.34→0.44, 長さ短縮 1.3→0.95)
+        const coneGeo = new THREE.ConeGeometry(0.44, 0.95, 28, 1, true);
         coneGeo.rotateZ(-Math.PI / 2);
         const cone = this.addMesh(coneGeo, Materials.radome, 'shockCone');
-        cone.position.set(0.65, 0, 0); // グループ内ローカル: 先端側
+        cone.position.set(0.48, 0, 0); // グループ内ローカル: 先端側 (短くなった分前進)
 
-        // コーン基部の丸み (半球) — グループ内に取り込む
-        const coneBaseGeo = new THREE.SphereGeometry(0.34, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+        // コーン基部の丸み (半球) — グループ内に取り込む (太く)
+        const coneBaseGeo = new THREE.SphereGeometry(0.44, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2);
         coneBaseGeo.rotateZ(Math.PI / 2);
         const coneBase = this.addMesh(coneBaseGeo, Materials.radome, 'shockConeBase');
         coneBase.position.set(0, 0, 0);
@@ -97,12 +101,12 @@ export class Fuselage extends AircraftPart {
         coneGroup.add(coneBase);
 
         // グループ基準位置 (コーン基部がインテーク内に来る位置)
-        coneGroup.position.set(5.4, 0, 0);
+        coneGroup.position.set(5.5, 0, 0);
         this.group.add(coneGroup);
 
         // 可動制御用に保持
         this.shockCone = coneGroup;
-        this._shockConeBaseX = 5.4;     // 基準位置
+        this._shockConeBaseX = 5.5;     // 基準位置
         this._shockConeTravel = 0.55;   // 最大ストローク (前方へ)
         this._shockConeExtend = 0;      // 0(格納) 〜 1(最前進) 目標値
         this._shockConeCurrent = 0;     // 現在の補間値
@@ -119,11 +123,12 @@ export class Fuselage extends AircraftPart {
 
         // ----------------------------------------------------------
         //  テールコーン端 (エンジンノズルへ繋がる絞り)
+        //  後部テーパーに合わせ、ノズル直前をより絞り込んだ形状へ。
         // ----------------------------------------------------------
-        const tailRingGeo = new THREE.CylinderGeometry(0.42, 0.40, 0.4, 24, 1, true);
+        const tailRingGeo = new THREE.CylinderGeometry(0.36, 0.32, 0.5, 24, 1, true);
         tailRingGeo.rotateZ(-Math.PI / 2);
         const tailRing = this.addMesh(tailRingGeo, Materials.bodyDark, 'tailRing');
-        tailRing.position.set(-5.9, 0, 0);
+        tailRing.position.set(-5.85, 0, 0);
 
         // ----------------------------------------------------------
         //  実機ディテール群 — より実機 (MiG-21MF) に近づける追加要素
@@ -143,9 +148,9 @@ export class Fuselage extends AircraftPart {
      */
     _buildUnderside() {
         const profile = [
-            [-5.6, 0.42], [-5.0, 0.62], [-4.0, 0.78], [-2.5, 0.86],
-            [-1.0, 0.90], [0.5, 0.88], [2.0, 0.82], [3.5, 0.74],
-            [4.6, 0.66], [5.2, 0.60],
+            [-5.6, 0.30], [-5.0, 0.48], [-4.2, 0.64], [-3.2, 0.78], [-2.0, 0.86],
+            [-1.0, 0.90], [0.5, 0.88], [2.0, 0.82], [3.5, 0.75],
+            [4.6, 0.69], [5.2, 0.68],
         ];
         const pts = profile.map(([x, r]) => new THREE.Vector2(r * 0.995, x));
         // 下半分だけ (φ を下側に制限)
@@ -158,7 +163,7 @@ export class Fuselage extends AircraftPart {
 
     /** インテーク前縁の磨き金属リング (実機の無塗装金属リップ) */
     _buildIntakeLipMetal() {
-        const ringGeo = new THREE.TorusGeometry(0.57, 0.03, 8, 36);
+        const ringGeo = new THREE.TorusGeometry(0.67, 0.035, 8, 36);
         ringGeo.rotateY(Math.PI / 2);
         const ring = this.addMesh(ringGeo, Materials.bareMetal, 'intakeLipMetal');
         ring.position.set(5.95, 0, 0);
@@ -167,8 +172,8 @@ export class Fuselage extends AircraftPart {
     /** 胴体の代表的なパネルライン (細いリング状のスジ彫り) */
     _buildPanelLines() {
         const ringDefs = [
-            [-4.6, 0.78], [-3.2, 0.84], [-1.6, 0.90],
-            [0.2, 0.88], [1.8, 0.83], [3.2, 0.76], [4.4, 0.67],
+            [-4.6, 0.58], [-3.2, 0.78], [-1.6, 0.90],
+            [0.2, 0.88], [1.8, 0.83], [3.2, 0.76], [4.4, 0.70],
         ];
         for (const [x, r] of ringDefs) {
             const g = new THREE.TorusGeometry(r + 0.005, 0.008, 6, 40);

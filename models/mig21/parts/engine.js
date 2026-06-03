@@ -32,17 +32,18 @@ export class Engine extends AircraftPart {
 
         // ----------------------------------------------------------
         //  ノズル外殻 (後方に広がる円錐台) — 内外は見えないので openEnded
+        //  修正: 胴体後部テーパーに合わせてノズル周辺をより絞り込んだ形状へ。
         // ----------------------------------------------------------
-        const shellGeo = new THREE.CylinderGeometry(0.46, 0.40, 0.9, 28, 1, true);
+        const shellGeo = new THREE.CylinderGeometry(0.36, 0.31, 1.0, 28, 1, true);
         shellGeo.rotateZ(-Math.PI / 2);
         const shell = this.addMesh(shellGeo, Materials.nozzle, 'nozzleShell');
         shell.position.set(tailX, 0, 0);
 
         // ノズル後縁の焼け色リング (高温で変色した排気リップ)
-        const burntGeo = new THREE.CylinderGeometry(0.4, 0.42, 0.22, 28, 1, true);
+        const burntGeo = new THREE.CylinderGeometry(0.31, 0.33, 0.22, 28, 1, true);
         burntGeo.rotateZ(-Math.PI / 2);
         const burnt = this.addMesh(burntGeo, Materials.nozzleBurnt, 'nozzleBurntRing');
-        burnt.position.set(tailX - 0.45, 0, 0);
+        burnt.position.set(tailX - 0.5, 0, 0);
 
         // ----------------------------------------------------------
         //  可変ノズルフラップ (円周上に並ぶペタル) — 雰囲気付け
@@ -50,9 +51,9 @@ export class Engine extends AircraftPart {
         const petalCount = 14;
         for (let i = 0; i < petalCount; i++) {
             const angle = (i / petalCount) * Math.PI * 2;
-            const petalGeo = new THREE.BoxGeometry(0.5, 0.02, 0.12);
+            const petalGeo = new THREE.BoxGeometry(0.5, 0.02, 0.1);
             const petal = this.addMesh(petalGeo, Materials.nozzle, `petal${i}`);
-            const r = 0.43;
+            const r = 0.34;
             petal.position.set(
                 tailX - 0.1,
                 Math.sin(angle) * r,
@@ -65,7 +66,7 @@ export class Engine extends AircraftPart {
         //  アフターバーナーコア (内側で発光する円錐) — 排気口直後の高温部
         //  背面/底面は見えないので openEnded
         // ----------------------------------------------------------
-        const coreGeo = new THREE.ConeGeometry(0.34, 1.1, 20, 1, true);
+        const coreGeo = new THREE.ConeGeometry(0.27, 1.1, 20, 1, true);
         coreGeo.rotateZ(Math.PI / 2); // 頂点を前方へ
         const core = this.addMesh(coreGeo, Materials.afterburner, 'afterburnerCore');
         core.position.set(tailX - 0.05, 0, 0);
@@ -88,9 +89,9 @@ export class Engine extends AircraftPart {
 
         // 各層: [半径, 長さ, マテリアル, 名前]
         const layers = [
-            [0.22, 3.4, Materials.flameOuter, 'plumeOuter'],
-            [0.15, 2.6, Materials.flameMid,   'plumeMid'],
-            [0.085, 1.8, Materials.flameCore,  'plumeCore'],
+            [0.18, 3.4, Materials.flameOuter, 'plumeOuter'],
+            [0.12, 2.6, Materials.flameMid,   'plumeMid'],
+            [0.07, 1.8, Materials.flameCore,  'plumeCore'],
         ];
         this.plumeMeshes = [];
         for (const [r, len, mat, name] of layers) {

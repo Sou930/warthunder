@@ -33,11 +33,18 @@ export class Wing extends AircraftPart {
         // ----------------------------------------------------------
         const root = 0.0;        // 付け根 (胴体接続)
         const span = 3.3;        // 片翼スパン
-        const leadingRootX = 1.85;  // 付け根前縁位置 (前方へ伸ばし後退角を強調)
-        const trailingRootX = -1.9; // 付け根後縁位置
+        // ----------------------------------------------------------
+        //  翼根を大型化し、前縁後退角を約57°へ強調したデルタ翼形状。
+        //  前縁後退角 Λ = atan(ΔX / span)。
+        //  ΔX = leadingRootX - tipFrontX = tan(57°) * span ≒ 1.54 * 3.3 ≒ 5.08
+        // ----------------------------------------------------------
+        const leadingRootX = 2.55;  // 付け根前縁位置 (翼根を前方へ大型化)
+        const trailingRootX = -2.55; // 付け根後縁位置 (翼根コードを拡大)
+        const sweepDeg = 57;        // 前縁後退角 (度)
+        // 前縁後退角57°を満たす翼端前縁位置
+        const tipFrontX = leadingRootX - Math.tan(THREE.MathUtils.degToRad(sweepDeg)) * span; // ≒ -2.53
         // 実機 MiG-21 はクリップトデルタ — 翼端が短く切り落とされている
-        const tipFrontX = -1.05;  // 翼端前縁の前後位置 (前縁後退角 約57°)
-        const tipRearX = -1.55;   // 翼端後縁の前後位置
+        const tipRearX = tipFrontX - 0.5;   // 翼端後縁の前後位置 (短い翼端コード)
         const tipChord = tipFrontX - tipRearX; // 翼端コード長 (短い)
 
         const shape = new THREE.Shape();
@@ -96,17 +103,17 @@ export class Wing extends AircraftPart {
         //  実機 MiG-21 の象徴的なディテール。各翼に 1 枚。
         // ----------------------------------------------------------
         const fenceShape = new THREE.Shape();
-        fenceShape.moveTo(1.2, 0);
-        fenceShape.lineTo(-1.4, 0);
-        fenceShape.lineTo(-1.4, 0.12);
-        fenceShape.lineTo(1.2, 0.16);
+        fenceShape.moveTo(1.4, 0);
+        fenceShape.lineTo(-1.8, 0);
+        fenceShape.lineTo(-1.8, 0.12);
+        fenceShape.lineTo(1.4, 0.16);
         fenceShape.closePath();
         const fenceGeo = new THREE.ExtrudeGeometry(fenceShape, {
             depth: 0.02, bevelEnabled: false,
         });
         // XY 平面の板を XZ(翼上面)に立てる: Z 方向(スパン)の位置に薄く立てる
         const fence = this.addMesh(fenceGeo, Materials.bodyDark, 'boundaryFence');
-        fence.position.set(-0.1, 0.0, dir * (span * 0.62));
+        fence.position.set(-0.4, 0.0, dir * (span * 0.62));
         fence.rotation.y = -Math.PI / 2; // 板面を前後方向に向ける
 
         // ----------------------------------------------------------
@@ -122,6 +129,6 @@ export class Wing extends AircraftPart {
         // ----------------------------------------------------------
         const spanLineGeo = new THREE.BoxGeometry(0.02, 0.13, span * 0.85);
         const spanLine = this.addMesh(spanLineGeo, Materials.panelLine, 'wingPanelSpan');
-        spanLine.position.set(0.4, -0.06, dir * (span * 0.5));
+        spanLine.position.set(0.2, -0.06, dir * (span * 0.5));
     }
 }
